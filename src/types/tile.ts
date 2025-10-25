@@ -3,6 +3,43 @@
  */
 
 /**
+ * Suit character for man/characters (萬子)
+ */
+export type ManSuit = 'm';
+
+/**
+ * Suit character for pin/dots (筒子)
+ */
+export type PinSuit = 'p';
+
+/**
+ * Suit character for sou/bamboo (索子)
+ */
+export type SouSuit = 's';
+
+/**
+ * Suit character for honors (字牌)
+ * 'z' is standard, 'h' is an alias
+ */
+export type HonorsSuit = 'z' | 'h';
+
+/**
+ * All valid suit characters
+ */
+export type Suit = ManSuit | PinSuit | SouSuit | HonorsSuit;
+
+/**
+ * String representation of tiles in mahjong notation
+ * Format: digits followed by suit letter (m/p/s/z)
+ * Examples: "123m", "456p789s11z", "11223344m5566p77s1z"
+ * - m: man/characters (萬子)
+ * - p: pin/dots (筒子)
+ * - s: sou/bamboo (索子)
+ * - z: honors (字牌)
+ */
+export type TileString = string;
+
+/**
  * Unique identifier for a physical tile (0-135)
  * Each of the 136 tiles in a mahjong set has a unique ID
  * Layout: 0-35 (man), 36-71 (pin), 72-107 (sou), 108-135 (honors)
