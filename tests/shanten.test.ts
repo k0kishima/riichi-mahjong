@@ -3,7 +3,7 @@ import { calculateShantenForRegularHand, AGARI_STATE } from '@/shanten';
 import { tehaiStringToHaiCounts } from '@/hai';
 
 describe('calculateShantenForRegularHand', () => {
-  describe('14 tiles hands - various shanten numbers', () => {
+  describe('14 hai hands - various shanten numbers', () => {
     it('should return AGARI_STATE (-1) for winning hand', () => {
       const tiles = tehaiStringToHaiCounts('111234567s11p567m');
       expect(calculateShantenForRegularHand(tiles)).toBe(AGARI_STATE);
@@ -14,7 +14,7 @@ describe('calculateShantenForRegularHand', () => {
       expect(calculateShantenForRegularHand(tiles)).toBe(AGARI_STATE);
     });
 
-    it('should return 0 (tenpai) for hand one tile away from winning', () => {
+    it('should return 0 (tenpai) for hand one hai away from winning', () => {
       const tiles = tehaiStringToHaiCounts('111345677s11p567m');
       expect(calculateShantenForRegularHand(tiles)).toBe(0);
     });
