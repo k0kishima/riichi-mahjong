@@ -18,9 +18,9 @@ export const AGARI_STATE = -1;
  */
 interface ShantenState {
   tiles: number[];
-  numberCompleteSets: number; // Number of complete sets (pon/chi) found during search
-  numberTatsu: number; // Number of incomplete sequences (tatsu)
-  numberPairs: number; // Number of pairs
+  numberMentsu: number; // Number of complete melds (面子: 刻子/順子)
+  numberTatsu: number; // Number of incomplete sequences (塔子)
+  numberToitsu: number; // Number of pairs (対子)
   honorTileAdjustment: number; // Special adjustment counter for honor tiles (字牌)
   flagFourCopies: number; // Bitmap for tiles with 4 copies
   flagIsolatedTiles: number; // Bitmap for isolated tiles
@@ -36,18 +36,18 @@ function processHonorTiles(state: ShantenState, tileCount: number): void {
 
   for (let i = 27; i < 34; i++) {
     if (state.tiles[i] === 4) {
-      state.numberCompleteSets += 1;
+      state.numberMentsu += 1;
       state.honorTileAdjustment += 1;
       fourCopies |= 1 << (i - 27);
       isolated |= 1 << (i - 27);
     }
 
     if (state.tiles[i] === 3) {
-      state.numberCompleteSets += 1;
+      state.numberMentsu += 1;
     }
 
     if (state.tiles[i] === 2) {
-      state.numberPairs += 1;
+      state.numberToitsu += 1;
     }
 
     if (state.tiles[i] === 1) {
@@ -71,20 +71,20 @@ function processHonorTiles(state: ShantenState, tileCount: number): void {
  * Update minimum shanten based on current state
  */
 function updateMinShanten(state: ShantenState): void {
-  let shanten = 8 - state.numberCompleteSets * 2 - state.numberTatsu - state.numberPairs;
-  const mentsuKouho = state.numberCompleteSets + state.numberTatsu;
-  let adjustedPairs = state.numberPairs;
+  let shanten = 8 - state.numberMentsu * 2 - state.numberTatsu - state.numberToitsu;
+  const mentsuKouho = state.numberMentsu + state.numberTatsu;
+  let adjustedToitsu = state.numberToitsu;
 
-  if (state.numberPairs) {
-    adjustedPairs = state.numberPairs - 1;
+  if (state.numberToitsu) {
+    adjustedToitsu = state.numberToitsu - 1;
   } else if (state.flagFourCopies && state.flagIsolatedTiles) {
     if ((state.flagFourCopies | state.flagIsolatedTiles) === state.flagFourCopies) {
       shanten += 1;
     }
   }
 
-  if (mentsuKouho + adjustedPairs > 4) {
-    shanten += mentsuKouho + adjustedPairs - 4;
+  if (mentsuKouho + adjustedToitsu > 4) {
+    shanten += mentsuKouho + adjustedToitsu - 4;
   }
 
   if (shanten !== AGARI_STATE && shanten < state.honorTileAdjustment) {
@@ -101,7 +101,7 @@ function updateMinShanten(state: ShantenState): void {
  */
 function increaseSet(state: ShantenState, index: number): void {
   state.tiles[index] -= 3;
-  state.numberCompleteSets += 1;
+  state.numberMentsu += 1;
 }
 
 /**
@@ -109,7 +109,7 @@ function increaseSet(state: ShantenState, index: number): void {
  */
 function decreaseSet(state: ShantenState, index: number): void {
   state.tiles[index] += 3;
-  state.numberCompleteSets -= 1;
+  state.numberMentsu -= 1;
 }
 
 /**
@@ -117,7 +117,7 @@ function decreaseSet(state: ShantenState, index: number): void {
  */
 function increasePair(state: ShantenState, index: number): void {
   state.tiles[index] -= 2;
-  state.numberPairs += 1;
+  state.numberToitsu += 1;
 }
 
 /**
@@ -125,7 +125,7 @@ function increasePair(state: ShantenState, index: number): void {
  */
 function decreasePair(state: ShantenState, index: number): void {
   state.tiles[index] += 2;
-  state.numberPairs -= 1;
+  state.numberToitsu -= 1;
 }
 
 /**
@@ -135,7 +135,7 @@ function increaseSequence(state: ShantenState, index: number): void {
   state.tiles[index] -= 1;
   state.tiles[index + 1] -= 1;
   state.tiles[index + 2] -= 1;
-  state.numberCompleteSets += 1;
+  state.numberMentsu += 1;
 }
 
 /**
@@ -145,7 +145,7 @@ function decreaseSequence(state: ShantenState, index: number): void {
   state.tiles[index] += 1;
   state.tiles[index + 1] += 1;
   state.tiles[index + 2] += 1;
-  state.numberCompleteSets -= 1;
+  state.numberMentsu -= 1;
 }
 
 /**
@@ -399,9 +399,9 @@ export function calculateShantenForRegularHand(tileCounts: TileCounts): ShantenN
   // Initialize state
   const state: ShantenState = {
     tiles: [...tileCounts],
-    numberCompleteSets: 0,
+    numberMentsu: 0,
     numberTatsu: 0,
-    numberPairs: 0,
+    numberToitsu: 0,
     honorTileAdjustment: 0,
     flagFourCopies: 0,
     flagIsolatedTiles: 0,
@@ -418,7 +418,7 @@ export function calculateShantenForRegularHand(tileCounts: TileCounts): ShantenN
 
   // Add initial melds based on missing tiles
   const initMentsu = Math.floor((14 - tileCount) / 3);
-  state.numberCompleteSets += initMentsu;
+  state.numberMentsu += initMentsu;
 
   // Search for best composition
   searchBestComposition(state, 0);
