@@ -1,12 +1,12 @@
 /**
  * Shanten calculation
  *
- * Shanten (向聴数) represents how many tiles away a hand is from being ready to win (tenpai).
+ * Shanten (向聴数) represents how many hai away a tehai is from being ready to win (tenpai).
  */
 
-import { TileCounts } from '@/types/tile';
+import { HaiCounts } from '@/types/hai';
 import { ShantenNumber } from '@/types/shanten';
-import { validateTileCount } from '@/utils/validation';
+import { validateHaiCount } from '@/utils/validation';
 
 /**
  * Agari state constant (winning hand)
@@ -383,22 +383,22 @@ function processOneTile(state: ShantenState, index: number, normalizedIndex: num
 }
 
 /**
- * Calculate shanten for regular hand (4 melds + 1 pair pattern)
- * @param tileCounts - TileCounts (length 34 array with counts 0-4)
+ * Calculate shanten for regular tehai (4 mentsu + 1 toitsu pattern)
+ * @param haiCounts - HaiCounts (length 34 array with counts 0-4)
  * @returns Shanten number (-1: agari, 0: tenpai, 1+: shanten)
  *
  * @example
- * const counts = handStringToTileCounts("123m456p789s11z");
+ * const counts = tehaiStringToHaiCounts("123m456p789s11z");
  * calculateShantenForRegularHand(counts); // Returns shanten number
  */
-export function calculateShantenForRegularHand(tileCounts: TileCounts): ShantenNumber {
-  validateTileCount(tileCounts, [13, 14]);
+export function calculateShantenForRegularHand(haiCounts: HaiCounts): ShantenNumber {
+  validateHaiCount(haiCounts, [13, 14]);
 
-  const tileCount = tileCounts.reduce<number>((sum, count) => sum + count, 0);
+  const haiCount = haiCounts.reduce<number>((sum, count) => sum + count, 0);
 
   // Initialize state
   const state: ShantenState = {
-    tiles: [...tileCounts],
+    tiles: [...haiCounts],
     numberMentsu: 0,
     numberTatsu: 0,
     numberToitsu: 0,
@@ -409,15 +409,15 @@ export function calculateShantenForRegularHand(tileCounts: TileCounts): ShantenN
   };
 
   // Process jihai/honor tiles
-  processHonorTiles(state, tileCount);
+  processHonorTiles(state, haiCount);
 
-  // Mark four-copy tiles in number tiles (0-26)
+  // Mark four-copy hai in number tiles (0-26)
   for (let i = 0; i < 27; i++) {
     state.flagFourCopies |= (state.tiles[i] === 4 ? 1 : 0) << i;
   }
 
-  // Add initial melds based on missing tiles
-  const initMentsu = Math.floor((14 - tileCount) / 3);
+  // Add initial mentsu based on missing hai
+  const initMentsu = Math.floor((14 - haiCount) / 3);
   state.numberMentsu += initMentsu;
 
   // Search for best composition

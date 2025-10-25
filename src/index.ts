@@ -3,16 +3,16 @@
  *
  * This library provides utilities for Japanese Riichi Mahjong:
  * - Shanten calculation (向聴数)
- * - Tile utilities
+ * - Hai (tile) utilities
  * - Validation utilities
  */
 
 // Type exports
-export * from './types/tile';
+export * from './types/hai';
 export * from './types/shanten';
 
-// Tile utilities
-export * from './tile';
+// Hai utilities
+export * from './hai';
 
 // Shanten calculator
 export * from './shanten';
