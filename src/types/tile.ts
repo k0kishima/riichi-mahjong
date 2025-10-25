@@ -29,15 +29,17 @@ export type HonorsSuit = 'z' | 'h';
 export type Suit = ManSuit | PinSuit | SouSuit | HonorsSuit;
 
 /**
- * String representation of tiles in mahjong notation
+ * String representation of a mahjong hand (13 or 14 tiles)
  * Format: digits followed by suit letter (m/p/s/z)
- * Examples: "123m", "456p789s11z", "11223344m5566p77s1z"
+ * Examples: "123m456p789s1111z" (14 tiles), "111234567s11p567m" (14 tiles)
  * - m: man/characters (萬子)
  * - p: pin/dots (筒子)
  * - s: sou/bamboo (索子)
  * - z: honors (字牌)
+ *
+ * Note: Must contain exactly 13 or 14 tiles total
  */
-export type TileString = string;
+export type HandString = string;
 
 /**
  * Unique identifier for a physical tile (0-135)
