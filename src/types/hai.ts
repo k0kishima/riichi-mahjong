@@ -31,9 +31,8 @@ export type SouzuSuit = 's';
 
 /**
  * Suit character for jihai/honors (字牌)
- * 'z' is standard, 'h' is an alias
  */
-export type JihaiSuit = 'z' | 'h';
+export type JihaiSuit = 'z';
 
 /**
  * All valid suit characters

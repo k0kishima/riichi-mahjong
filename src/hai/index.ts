@@ -40,12 +40,12 @@ export function createHaiCounts(arr: readonly number[]): HaiCounts {
  * @returns true if the character is a valid suit
  */
 function isSuit(char: string): char is Suit {
-  return char === 'm' || char === 'p' || char === 's' || char === 'z' || char === 'h';
+  return char === 'm' || char === 'p' || char === 's' || char === 'z';
 }
 
 /**
  * Get offset for a suit character
- * @param suit - Suit character (m/p/s/z/h)
+ * @param suit - Suit character (m/p/s/z)
  * @returns Offset for hai kind ID calculation
  */
 function getSuitOffset(suit: Suit): number {
@@ -57,7 +57,6 @@ function getSuitOffset(suit: Suit): number {
     case 's':
       return 18; // souzu: 18-26
     case 'z':
-    case 'h':
       return 27; // jihai: 27-33
   }
 }
@@ -75,8 +74,8 @@ function validateAndParseHaiNumber(digit: string, suit: Suit): number {
     throw new Error(`Invalid hai number: ${digit}`);
   }
 
-  // Validate number range for jihai (z/h)
-  if ((suit === 'z' || suit === 'h') && num > 7) {
+  // Validate number range for jihai (z)
+  if (suit === 'z' && num > 7) {
     throw new Error(`Invalid hai number: ${digit}`);
   }
 

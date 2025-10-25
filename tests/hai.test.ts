@@ -160,11 +160,6 @@ describe('tehaiStringToHaiCounts', () => {
   });
 
   describe('Edge cases', () => {
-    it('should use h as alias for z', () => {
-      const result = tehaiStringToHaiCounts('123456789m1111h');
-      expect(result[27]).toBe(4); // 1z (East)
-    });
-
     it('should handle 14-hai tehai with 4 of the same hai', () => {
       const result = tehaiStringToHaiCounts('11112345678999m');
       expect(result[0]).toBe(4); // 1m x4
