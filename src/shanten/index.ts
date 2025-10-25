@@ -6,7 +6,7 @@
 
 import { HaiCounts } from '@/types/hai';
 import { ShantenNumber } from '@/types/shanten';
-import { validateHaiCount } from '@/utils/validation';
+import { validateHaiCount } from '@/hai';
 
 /**
  * Agari state constant (winning hand)

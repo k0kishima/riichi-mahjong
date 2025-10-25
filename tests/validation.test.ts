@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateHaiCount } from '@/utils/validation';
+import { validateHaiCount } from '@/hai';
 import { HaiCounts } from '@/types/hai';
 
 describe('validateHaiCount', () => {
