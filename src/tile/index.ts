@@ -21,14 +21,14 @@ function isSuit(char: string): char is Suit {
 function getSuitOffset(suit: Suit): number {
   switch (suit) {
     case 'm':
-      return 0; // man: 0-8
+      return 0; // manzu: 0-8
     case 'p':
-      return 9; // pin: 9-17
+      return 9; // pinzu: 9-17
     case 's':
-      return 18; // sou: 18-26
+      return 18; // souzu: 18-26
     case 'z':
     case 'h':
-      return 27; // honors: 27-33
+      return 27; // jihai: 27-33
   }
 }
 
@@ -36,7 +36,7 @@ function getSuitOffset(suit: Suit): number {
  * Validate and parse a tile number character
  * @param digit - Digit character to parse
  * @param suit - Suit character for validation
- * @returns Parsed number (1-9 for suits, 1-7 for honors)
+ * @returns Parsed number (1-9 for number suits, 1-7 for jihai)
  */
 function validateAndParseTileNumber(digit: string, suit: Suit): number {
   const num = parseInt(digit, 10);
@@ -45,7 +45,7 @@ function validateAndParseTileNumber(digit: string, suit: Suit): number {
     throw new Error(`Invalid tile number: ${digit}`);
   }
 
-  // Validate number range for honors (z/h)
+  // Validate number range for jihai (z/h)
   if ((suit === 'z' || suit === 'h') && num > 7) {
     throw new Error(`Invalid tile number: ${digit}`);
   }
@@ -104,8 +104,8 @@ export function isHandString(str: string): str is HandString {
  *
  * @example
  * handStringToTileCounts("123m456p789s1111z")
- * // Returns array where indices 0,1,2 (man 1,2,3) have count 1,
- * // indices 12,13,14 (pin 4,5,6) have count 1, etc.
+ * // Returns array where indices 0,1,2 (manzu 1,2,3) have count 1,
+ * // indices 12,13,14 (pinzu 4,5,6) have count 1, etc.
  */
 export function handStringToTileCounts(hand: HandString): TileCounts {
   const counts: number[] = new Array(34).fill(0);

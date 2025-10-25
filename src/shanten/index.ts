@@ -21,14 +21,14 @@ interface ShantenState {
   numberMentsu: number; // Number of complete melds (面子: 刻子/順子)
   numberTatsu: number; // Number of incomplete sequences (塔子)
   numberToitsu: number; // Number of pairs (対子)
-  honorTileAdjustment: number; // Special adjustment counter for honor tiles (字牌)
+  honorTileAdjustment: number; // Special adjustment counter for jihai/honor tiles (字牌)
   flagFourCopies: number; // Bitmap for tiles with 4 copies
   flagIsolatedTiles: number; // Bitmap for isolated tiles
   minShanten: number; // Minimum shanten found
 }
 
 /**
- * Process honor tiles (indices 27-33) and update state
+ * Process jihai/honor tiles (indices 27-33) and update state
  */
 function processHonorTiles(state: ShantenState, tileCount: number): void {
   let fourCopies = 0;
@@ -408,7 +408,7 @@ export function calculateShantenForRegularHand(tileCounts: TileCounts): ShantenN
     minShanten: 8,
   };
 
-  // Process honor tiles
+  // Process jihai/honor tiles
   processHonorTiles(state, tileCount);
 
   // Mark four-copy tiles in number tiles (0-26)
