@@ -16,3 +16,51 @@ export type TileId = number;
  * Layout: 0-8 (man/characters), 9-17 (pin/dots), 18-26 (sou/bamboo), 27-33 (honors)
  */
 export type TileKindId = number;
+
+/**
+ * Count of tiles for a specific kind (0-4 tiles)
+ * Each tile kind can have 0 to 4 instances
+ */
+export type TileCount = 0 | 1 | 2 | 3 | 4;
+
+/**
+ * Array of tile counts for all 34 tile kinds
+ * Index corresponds to TileKindId (0-33)
+ * Each element is the count (0-4) of that tile kind
+ *
+ * @example
+ * const counts: TileCounts = [
+ *   2, 0, 1, 0, 0, 0, 0, 0, 0, // man (index 0-8)
+ *   0, 0, 0, 0, 0, 0, 0, 0, 0, // pin (index 9-17)
+ *   0, 0, 0, 0, 0, 0, 0, 0, 0, // sou (index 18-26)
+ *   1, 0, 0, 0, 0, 0, 0         // honors (index 27-33)
+ * ];
+ */
+export type TileCounts = readonly TileCount[];
+
+/**
+ * Type guard to validate that an array is valid TileCounts
+ * @param arr - Array to validate
+ * @returns true if the array is valid TileCounts
+ */
+export function isTileCounts(arr: readonly number[]): arr is TileCounts {
+  return arr.length === 34 && arr.every((c) => c >= 0 && c <= 4);
+}
+
+/**
+ * Create validated TileCounts from an array
+ * @param arr - Array of numbers to validate and convert
+ * @returns Validated TileCounts
+ * @throws Error if the array is not valid TileCounts
+ *
+ * @example
+ * const counts = createTileCounts([2, 0, 1, 0, ..., 0]); // 34 elements
+ */
+export function createTileCounts(arr: readonly number[]): TileCounts {
+  if (!isTileCounts(arr)) {
+    throw new Error(
+      `Invalid TileCounts: expected length 34 with values 0-4, got length ${arr.length}`,
+    );
+  }
+  return arr;
+}
