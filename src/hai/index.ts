@@ -5,6 +5,36 @@
 import { TehaiString, HaiCounts, Suit } from '@/types/hai';
 
 /**
+ * Type guard to validate that an array is valid HaiCounts
+ * @param arr - Array to validate
+ * @returns true if the array is valid HaiCounts
+ *
+ * @example
+ * isHaiCounts([1, 2, 0, ...]) // true if length 34 and all values 0-4
+ */
+export function isHaiCounts(arr: readonly number[]): arr is HaiCounts {
+  return arr.length === 34 && arr.every((c) => c >= 0 && c <= 4);
+}
+
+/**
+ * Create validated HaiCounts from an array
+ * @param arr - Array of numbers to validate and convert
+ * @returns Validated HaiCounts
+ * @throws Error if the array is not valid HaiCounts
+ *
+ * @example
+ * const counts = createHaiCounts([2, 0, 1, 0, ..., 0]); // 34 elements
+ */
+export function createHaiCounts(arr: readonly number[]): HaiCounts {
+  if (!isHaiCounts(arr)) {
+    throw new Error(
+      `Invalid HaiCounts: expected length 34 with values 0-4, got length ${arr.length}`,
+    );
+  }
+  return arr;
+}
+
+/**
  * Type guard to check if a character is a valid suit
  * @param char - Character to check
  * @returns true if the character is a valid suit
