@@ -1,15 +1,17 @@
 /**
- * riichi-mahjong - Riichi Mahjong hand calculation library
+ * riichi-mahjong - Riichi Mahjong library for TypeScript
  *
  * This library provides utilities for Japanese Riichi Mahjong:
- * - Hand calculation (han, fu, yaku, scores)
- * - Shanten calculation
- * - Tile and meld representations
+ * - Shanten calculation (向聴数)
+ * - Tile utilities
  */
 
+// Type exports
+export * from './types/tile';
+export * from './types/shanten';
+
+// Tile utilities
 export * from './tile';
-export * from './meld';
-export * from './constants';
+
+// Shanten calculator
 export * from './shanten';
-export * from './agari';
-export * from './utils';
