@@ -4,8 +4,9 @@
  * Shanten (向聴数) represents how many tiles away a hand is from being ready to win (tenpai).
  */
 
-import { TileCounts } from '../types/tile';
-import { ShantenNumber } from '../types/shanten';
+import { TileCounts } from '@/types/tile';
+import { ShantenNumber } from '@/types/shanten';
+import { validateTileCount } from '@/utils/validation';
 
 /**
  * Agari state constant (winning hand)
@@ -13,328 +14,414 @@ import { ShantenNumber } from '../types/shanten';
 export const AGARI_STATE = -1;
 
 /**
+ * Internal state for shanten calculation
+ */
+interface ShantenState {
+  tiles: number[];
+  numberCompleteSets: number; // Number of complete sets (pon/chi) found during search
+  numberTatsu: number; // Number of incomplete sequences (tatsu)
+  numberPairs: number; // Number of pairs
+  honorTileAdjustment: number; // Special adjustment counter for honor tiles (字牌)
+  flagFourCopies: number; // Bitmap for tiles with 4 copies
+  flagIsolatedTiles: number; // Bitmap for isolated tiles
+  minShanten: number; // Minimum shanten found
+}
+
+/**
+ * Process honor tiles (indices 27-33) and update state
+ */
+function processHonorTiles(state: ShantenState, tileCount: number): void {
+  let fourCopies = 0;
+  let isolated = 0;
+
+  for (let i = 27; i < 34; i++) {
+    if (state.tiles[i] === 4) {
+      state.numberCompleteSets += 1;
+      state.honorTileAdjustment += 1;
+      fourCopies |= 1 << (i - 27);
+      isolated |= 1 << (i - 27);
+    }
+
+    if (state.tiles[i] === 3) {
+      state.numberCompleteSets += 1;
+    }
+
+    if (state.tiles[i] === 2) {
+      state.numberPairs += 1;
+    }
+
+    if (state.tiles[i] === 1) {
+      isolated |= 1 << (i - 27);
+    }
+  }
+
+  if (state.honorTileAdjustment && tileCount % 3 === 2) {
+    state.honorTileAdjustment -= 1;
+  }
+
+  if (isolated) {
+    state.flagIsolatedTiles |= 1 << 27;
+    if ((fourCopies | isolated) === fourCopies) {
+      state.flagFourCopies |= 1 << 27;
+    }
+  }
+}
+
+/**
+ * Update minimum shanten based on current state
+ */
+function updateMinShanten(state: ShantenState): void {
+  let shanten = 8 - state.numberCompleteSets * 2 - state.numberTatsu - state.numberPairs;
+  const mentsuKouho = state.numberCompleteSets + state.numberTatsu;
+  let adjustedPairs = state.numberPairs;
+
+  if (state.numberPairs) {
+    adjustedPairs = state.numberPairs - 1;
+  } else if (state.flagFourCopies && state.flagIsolatedTiles) {
+    if ((state.flagFourCopies | state.flagIsolatedTiles) === state.flagFourCopies) {
+      shanten += 1;
+    }
+  }
+
+  if (mentsuKouho + adjustedPairs > 4) {
+    shanten += mentsuKouho + adjustedPairs - 4;
+  }
+
+  if (shanten !== AGARI_STATE && shanten < state.honorTileAdjustment) {
+    shanten = state.honorTileAdjustment;
+  }
+
+  if (shanten < state.minShanten) {
+    state.minShanten = shanten;
+  }
+}
+
+/**
+ * Increment a set (pon) in the state
+ */
+function increaseSet(state: ShantenState, index: number): void {
+  state.tiles[index] -= 3;
+  state.numberCompleteSets += 1;
+}
+
+/**
+ * Decrement a set (pon) in the state
+ */
+function decreaseSet(state: ShantenState, index: number): void {
+  state.tiles[index] += 3;
+  state.numberCompleteSets -= 1;
+}
+
+/**
+ * Increment a pair in the state
+ */
+function increasePair(state: ShantenState, index: number): void {
+  state.tiles[index] -= 2;
+  state.numberPairs += 1;
+}
+
+/**
+ * Decrement a pair in the state
+ */
+function decreasePair(state: ShantenState, index: number): void {
+  state.tiles[index] += 2;
+  state.numberPairs -= 1;
+}
+
+/**
+ * Increment a sequence (chi) in the state
+ */
+function increaseSequence(state: ShantenState, index: number): void {
+  state.tiles[index] -= 1;
+  state.tiles[index + 1] -= 1;
+  state.tiles[index + 2] -= 1;
+  state.numberCompleteSets += 1;
+}
+
+/**
+ * Decrement a sequence (chi) in the state
+ */
+function decreaseSequence(state: ShantenState, index: number): void {
+  state.tiles[index] += 1;
+  state.tiles[index + 1] += 1;
+  state.tiles[index + 2] += 1;
+  state.numberCompleteSets -= 1;
+}
+
+/**
+ * Increment a tatsu (incomplete sequence, e.g., 12 or 13) in the state
+ */
+function increaseTatsuFirst(state: ShantenState, index: number): void {
+  state.tiles[index] -= 1;
+  state.tiles[index + 1] -= 1;
+  state.numberTatsu += 1;
+}
+
+/**
+ * Decrement a tatsu (12 pattern) in the state
+ */
+function decreaseTatsuFirst(state: ShantenState, index: number): void {
+  state.tiles[index] += 1;
+  state.tiles[index + 1] += 1;
+  state.numberTatsu -= 1;
+}
+
+/**
+ * Increment a tatsu (13 pattern) in the state
+ */
+function increaseTatsuSecond(state: ShantenState, index: number): void {
+  state.tiles[index] -= 1;
+  state.tiles[index + 2] -= 1;
+  state.numberTatsu += 1;
+}
+
+/**
+ * Decrement a tatsu (13 pattern) in the state
+ */
+function decreaseTatsuSecond(state: ShantenState, index: number): void {
+  state.tiles[index] += 1;
+  state.tiles[index + 2] += 1;
+  state.numberTatsu -= 1;
+}
+
+/**
+ * Mark a tile as isolated in the state
+ */
+function increaseIsolatedTile(state: ShantenState, index: number): void {
+  state.tiles[index] -= 1;
+  state.flagIsolatedTiles |= 1 << index;
+}
+
+/**
+ * Unmark a tile as isolated in the state
+ */
+function decreaseIsolatedTile(state: ShantenState, index: number): void {
+  state.tiles[index] += 1;
+  state.flagIsolatedTiles &= ~(1 << index);
+}
+
+/**
+ * Recursively search for the best hand composition
+ */
+function searchBestComposition(state: ShantenState, depth: number): void {
+  if (state.minShanten === AGARI_STATE) {
+    return;
+  }
+
+  // Find next tile position with count > 0
+  let currentDepth = depth;
+  while (!state.tiles[currentDepth]) {
+    currentDepth += 1;
+    if (currentDepth >= 27) {
+      break;
+    }
+  }
+
+  if (currentDepth >= 27) {
+    updateMinShanten(state);
+    return;
+  }
+
+  // Normalize index to 0-8 range for suit tiles
+  let normalizedIndex = currentDepth;
+  if (normalizedIndex > 8) normalizedIndex -= 9;
+  if (normalizedIndex > 8) normalizedIndex -= 9;
+
+  // Process tiles based on count
+  if (state.tiles[currentDepth] === 4) {
+    processFourTiles(state, currentDepth, normalizedIndex);
+  }
+
+  if (state.tiles[currentDepth] === 3) {
+    processThreeTiles(state, currentDepth, normalizedIndex);
+  }
+
+  if (state.tiles[currentDepth] === 2) {
+    processTwoTiles(state, currentDepth, normalizedIndex);
+  }
+
+  if (state.tiles[currentDepth] === 1) {
+    processOneTile(state, currentDepth, normalizedIndex);
+  }
+}
+
+/**
+ * Process when there are 4 copies of the same tile
+ */
+function processFourTiles(state: ShantenState, index: number, normalizedIndex: number): void {
+  increaseSet(state, index);
+  if (normalizedIndex < 7 && state.tiles[index + 2]) {
+    if (state.tiles[index + 1]) {
+      increaseSequence(state, index);
+      searchBestComposition(state, index + 1);
+      decreaseSequence(state, index);
+    }
+    increaseTatsuSecond(state, index);
+    searchBestComposition(state, index + 1);
+    decreaseTatsuSecond(state, index);
+  }
+
+  if (normalizedIndex < 8 && state.tiles[index + 1]) {
+    increaseTatsuFirst(state, index);
+    searchBestComposition(state, index + 1);
+    decreaseTatsuFirst(state, index);
+  }
+
+  increaseIsolatedTile(state, index);
+  searchBestComposition(state, index + 1);
+  decreaseIsolatedTile(state, index);
+  decreaseSet(state, index);
+  increasePair(state, index);
+
+  if (normalizedIndex < 7 && state.tiles[index + 2]) {
+    if (state.tiles[index + 1]) {
+      increaseSequence(state, index);
+      searchBestComposition(state, index);
+      decreaseSequence(state, index);
+    }
+    increaseTatsuSecond(state, index);
+    searchBestComposition(state, index + 1);
+    decreaseTatsuSecond(state, index);
+  }
+
+  if (normalizedIndex < 8 && state.tiles[index + 1]) {
+    increaseTatsuFirst(state, index);
+    searchBestComposition(state, index + 1);
+    decreaseTatsuFirst(state, index);
+  }
+
+  decreasePair(state, index);
+}
+
+/**
+ * Process when there are 3 copies of the same tile
+ */
+function processThreeTiles(state: ShantenState, index: number, normalizedIndex: number): void {
+  increaseSet(state, index);
+  searchBestComposition(state, index + 1);
+  decreaseSet(state, index);
+  increasePair(state, index);
+
+  if (normalizedIndex < 7 && state.tiles[index + 1] && state.tiles[index + 2]) {
+    increaseSequence(state, index);
+    searchBestComposition(state, index + 1);
+    decreaseSequence(state, index);
+  } else {
+    if (normalizedIndex < 7 && state.tiles[index + 2]) {
+      increaseTatsuSecond(state, index);
+      searchBestComposition(state, index + 1);
+      decreaseTatsuSecond(state, index);
+    }
+
+    if (normalizedIndex < 8 && state.tiles[index + 1]) {
+      increaseTatsuFirst(state, index);
+      searchBestComposition(state, index + 1);
+      decreaseTatsuFirst(state, index);
+    }
+  }
+
+  decreasePair(state, index);
+
+  if (normalizedIndex < 7 && state.tiles[index + 2] >= 2 && state.tiles[index + 1] >= 2) {
+    increaseSequence(state, index);
+    increaseSequence(state, index);
+    searchBestComposition(state, index);
+    decreaseSequence(state, index);
+    decreaseSequence(state, index);
+  }
+}
+
+/**
+ * Process when there are 2 copies of the same tile
+ */
+function processTwoTiles(state: ShantenState, index: number, normalizedIndex: number): void {
+  increasePair(state, index);
+  searchBestComposition(state, index + 1);
+  decreasePair(state, index);
+  if (normalizedIndex < 7 && state.tiles[index + 2] && state.tiles[index + 1]) {
+    increaseSequence(state, index);
+    searchBestComposition(state, index);
+    decreaseSequence(state, index);
+  }
+}
+
+/**
+ * Process when there is 1 copy of the tile
+ */
+function processOneTile(state: ShantenState, index: number, normalizedIndex: number): void {
+  if (
+    normalizedIndex < 6 &&
+    state.tiles[index + 1] === 1 &&
+    state.tiles[index + 2] &&
+    state.tiles[index + 3] !== 4
+  ) {
+    increaseSequence(state, index);
+    searchBestComposition(state, index + 2);
+    decreaseSequence(state, index);
+  } else {
+    increaseIsolatedTile(state, index);
+    searchBestComposition(state, index + 1);
+    decreaseIsolatedTile(state, index);
+
+    if (normalizedIndex < 7 && state.tiles[index + 2]) {
+      if (state.tiles[index + 1]) {
+        increaseSequence(state, index);
+        searchBestComposition(state, index + 1);
+        decreaseSequence(state, index);
+      }
+      increaseTatsuSecond(state, index);
+      searchBestComposition(state, index + 1);
+      decreaseTatsuSecond(state, index);
+    }
+
+    if (normalizedIndex < 8 && state.tiles[index + 1]) {
+      increaseTatsuFirst(state, index);
+      searchBestComposition(state, index + 1);
+      decreaseTatsuFirst(state, index);
+    }
+  }
+}
+
+/**
  * Calculate shanten for regular hand (4 melds + 1 pair pattern)
  * @param tileCounts - TileCounts (length 34 array with counts 0-4)
  * @returns Shanten number (-1: agari, 0: tenpai, 1+: shanten)
  *
  * @example
- * const counts = TilesConverter.stringToTileCounts("123m456p789s11z");
+ * const counts = handStringToTileCounts("123m456p789s11z");
  * calculateShantenForRegularHand(counts); // Returns shanten number
  */
 export function calculateShantenForRegularHand(tileCounts: TileCounts): ShantenNumber {
-  // Copy tiles array as we'll modify it
-  const tiles: number[] = [...tileCounts];
+  validateTileCount(tileCounts, [13, 14]);
 
-  // Validate tile count
-  const countOfTiles = tiles.reduce((sum, count) => sum + count, 0) as number;
-  if (countOfTiles > 14) {
-    throw new Error(`Too many tiles: ${countOfTiles}`);
-  }
+  const tileCount = tileCounts.reduce<number>((sum, count) => sum + count, 0);
 
-  // Internal state
-  let numberMelds = 0;
-  let numberTatsu = 0;
-  let numberPairs = 0;
-  let numberJidahai = 0;
-  let flagFourCopies = 0;
-  let flagIsolatedTiles = 0;
-  let minShanten = 8;
-
-  // Process honor tiles (indices 27-33)
-  const removeCharacterTiles = (nc: number) => {
-    let fourCopies = 0;
-    let isolated = 0;
-
-    for (let i = 27; i < 34; i++) {
-      if (tiles[i] === 4) {
-        numberMelds += 1;
-        numberJidahai += 1;
-        fourCopies |= 1 << (i - 27);
-        isolated |= 1 << (i - 27);
-      }
-
-      if (tiles[i] === 3) {
-        numberMelds += 1;
-      }
-
-      if (tiles[i] === 2) {
-        numberPairs += 1;
-      }
-
-      if (tiles[i] === 1) {
-        isolated |= 1 << (i - 27);
-      }
-    }
-
-    if (numberJidahai && nc % 3 === 2) {
-      numberJidahai -= 1;
-    }
-
-    if (isolated) {
-      flagIsolatedTiles |= 1 << 27;
-      if ((fourCopies | isolated) === fourCopies) {
-        flagFourCopies |= 1 << 27;
-      }
-    }
+  // Initialize state
+  const state: ShantenState = {
+    tiles: [...tileCounts],
+    numberCompleteSets: 0,
+    numberTatsu: 0,
+    numberPairs: 0,
+    honorTileAdjustment: 0,
+    flagFourCopies: 0,
+    flagIsolatedTiles: 0,
+    minShanten: 8,
   };
 
-  // Update result based on current state
-  const updateResult = () => {
-    let retShanten = 8 - numberMelds * 2 - numberTatsu - numberPairs;
-    const nMentsuKouho = numberMelds + numberTatsu;
-    let adjustedPairs = numberPairs;
-
-    if (numberPairs) {
-      adjustedPairs = numberPairs - 1;
-    } else if (flagFourCopies && flagIsolatedTiles) {
-      if ((flagFourCopies | flagIsolatedTiles) === flagFourCopies) {
-        retShanten += 1;
-      }
-    }
-
-    if (nMentsuKouho + adjustedPairs > 4) {
-      retShanten += nMentsuKouho + adjustedPairs - 4;
-    }
-
-    if (retShanten !== AGARI_STATE && retShanten < numberJidahai) {
-      retShanten = numberJidahai;
-    }
-
-    if (retShanten < minShanten) {
-      minShanten = retShanten;
-    }
-  };
-
-  // Helper functions for meld manipulation
-  const increaseSet = (k: number) => {
-    tiles[k] -= 3;
-    numberMelds += 1;
-  };
-
-  const decreaseSet = (k: number) => {
-    tiles[k] += 3;
-    numberMelds -= 1;
-  };
-
-  const increasePair = (k: number) => {
-    tiles[k] -= 2;
-    numberPairs += 1;
-  };
-
-  const decreasePair = (k: number) => {
-    tiles[k] += 2;
-    numberPairs -= 1;
-  };
-
-  const increaseSyuntsu = (k: number) => {
-    tiles[k] -= 1;
-    tiles[k + 1] -= 1;
-    tiles[k + 2] -= 1;
-    numberMelds += 1;
-  };
-
-  const decreaseSyuntsu = (k: number) => {
-    tiles[k] += 1;
-    tiles[k + 1] += 1;
-    tiles[k + 2] += 1;
-    numberMelds -= 1;
-  };
-
-  const increaseTatsuFirst = (k: number) => {
-    tiles[k] -= 1;
-    tiles[k + 1] -= 1;
-    numberTatsu += 1;
-  };
-
-  const decreaseTatsuFirst = (k: number) => {
-    tiles[k] += 1;
-    tiles[k + 1] += 1;
-    numberTatsu -= 1;
-  };
-
-  const increaseTatsuSecond = (k: number) => {
-    tiles[k] -= 1;
-    tiles[k + 2] -= 1;
-    numberTatsu += 1;
-  };
-
-  const decreaseTatsuSecond = (k: number) => {
-    tiles[k] += 1;
-    tiles[k + 2] += 1;
-    numberTatsu -= 1;
-  };
-
-  const increaseIsolatedTile = (k: number) => {
-    tiles[k] -= 1;
-    flagIsolatedTiles |= 1 << k;
-  };
-
-  const decreaseIsolatedTile = (k: number) => {
-    tiles[k] += 1;
-    flagIsolatedTiles &= ~(1 << k);
-  };
-
-  // Recursive function to find optimal hand composition
-  const run = (depth: number): void => {
-    if (minShanten === AGARI_STATE) {
-      return;
-    }
-
-    let currentDepth = depth;
-    while (!tiles[currentDepth]) {
-      currentDepth += 1;
-      if (currentDepth >= 27) {
-        break;
-      }
-    }
-
-    if (currentDepth >= 27) {
-      updateResult();
-      return;
-    }
-
-    let i = currentDepth;
-    if (i > 8) i -= 9;
-    if (i > 8) i -= 9;
-
-    if (tiles[currentDepth] === 4) {
-      increaseSet(currentDepth);
-      if (i < 7 && tiles[currentDepth + 2]) {
-        if (tiles[currentDepth + 1]) {
-          increaseSyuntsu(currentDepth);
-          run(currentDepth + 1);
-          decreaseSyuntsu(currentDepth);
-        }
-        increaseTatsuSecond(currentDepth);
-        run(currentDepth + 1);
-        decreaseTatsuSecond(currentDepth);
-      }
-
-      if (i < 8 && tiles[currentDepth + 1]) {
-        increaseTatsuFirst(currentDepth);
-        run(currentDepth + 1);
-        decreaseTatsuFirst(currentDepth);
-      }
-
-      increaseIsolatedTile(currentDepth);
-      run(currentDepth + 1);
-      decreaseIsolatedTile(currentDepth);
-      decreaseSet(currentDepth);
-      increasePair(currentDepth);
-
-      if (i < 7 && tiles[currentDepth + 2]) {
-        if (tiles[currentDepth + 1]) {
-          increaseSyuntsu(currentDepth);
-          run(currentDepth);
-          decreaseSyuntsu(currentDepth);
-        }
-        increaseTatsuSecond(currentDepth);
-        run(currentDepth + 1);
-        decreaseTatsuSecond(currentDepth);
-      }
-
-      if (i < 8 && tiles[currentDepth + 1]) {
-        increaseTatsuFirst(currentDepth);
-        run(currentDepth + 1);
-        decreaseTatsuFirst(currentDepth);
-      }
-
-      decreasePair(currentDepth);
-    }
-
-    if (tiles[currentDepth] === 3) {
-      increaseSet(currentDepth);
-      run(currentDepth + 1);
-      decreaseSet(currentDepth);
-      increasePair(currentDepth);
-
-      if (i < 7 && tiles[currentDepth + 1] && tiles[currentDepth + 2]) {
-        increaseSyuntsu(currentDepth);
-        run(currentDepth + 1);
-        decreaseSyuntsu(currentDepth);
-      } else {
-        if (i < 7 && tiles[currentDepth + 2]) {
-          increaseTatsuSecond(currentDepth);
-          run(currentDepth + 1);
-          decreaseTatsuSecond(currentDepth);
-        }
-
-        if (i < 8 && tiles[currentDepth + 1]) {
-          increaseTatsuFirst(currentDepth);
-          run(currentDepth + 1);
-          decreaseTatsuFirst(currentDepth);
-        }
-      }
-
-      decreasePair(currentDepth);
-
-      if (i < 7 && tiles[currentDepth + 2] >= 2 && tiles[currentDepth + 1] >= 2) {
-        increaseSyuntsu(currentDepth);
-        increaseSyuntsu(currentDepth);
-        run(currentDepth);
-        decreaseSyuntsu(currentDepth);
-        decreaseSyuntsu(currentDepth);
-      }
-    }
-
-    if (tiles[currentDepth] === 2) {
-      increasePair(currentDepth);
-      run(currentDepth + 1);
-      decreasePair(currentDepth);
-      if (i < 7 && tiles[currentDepth + 2] && tiles[currentDepth + 1]) {
-        increaseSyuntsu(currentDepth);
-        run(currentDepth);
-        decreaseSyuntsu(currentDepth);
-      }
-    }
-
-    if (tiles[currentDepth] === 1) {
-      if (
-        i < 6 &&
-        tiles[currentDepth + 1] === 1 &&
-        tiles[currentDepth + 2] &&
-        tiles[currentDepth + 3] !== 4
-      ) {
-        increaseSyuntsu(currentDepth);
-        run(currentDepth + 2);
-        decreaseSyuntsu(currentDepth);
-      } else {
-        increaseIsolatedTile(currentDepth);
-        run(currentDepth + 1);
-        decreaseIsolatedTile(currentDepth);
-
-        if (i < 7 && tiles[currentDepth + 2]) {
-          if (tiles[currentDepth + 1]) {
-            increaseSyuntsu(currentDepth);
-            run(currentDepth + 1);
-            decreaseSyuntsu(currentDepth);
-          }
-          increaseTatsuSecond(currentDepth);
-          run(currentDepth + 1);
-          decreaseTatsuSecond(currentDepth);
-        }
-
-        if (i < 8 && tiles[currentDepth + 1]) {
-          increaseTatsuFirst(currentDepth);
-          run(currentDepth + 1);
-          decreaseTatsuFirst(currentDepth);
-        }
-      }
-    }
-  };
-
-  // Main algorithm
-  removeCharacterTiles(countOfTiles);
+  // Process honor tiles
+  processHonorTiles(state, tileCount);
 
   // Mark four-copy tiles in number tiles (0-26)
   for (let i = 0; i < 27; i++) {
-    flagFourCopies |= (tiles[i] === 4 ? 1 : 0) << i;
+    state.flagFourCopies |= (state.tiles[i] === 4 ? 1 : 0) << i;
   }
 
-  const initMentsu = Math.floor((14 - countOfTiles) / 3);
-  numberMelds += initMentsu;
+  // Add initial melds based on missing tiles
+  const initMentsu = Math.floor((14 - tileCount) / 3);
+  state.numberCompleteSets += initMentsu;
 
-  run(0);
+  // Search for best composition
+  searchBestComposition(state, 0);
 
-  return minShanten;
+  return state.minShanten;
 }
