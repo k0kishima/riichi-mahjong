@@ -6,12 +6,47 @@
  * - Hai (tile) utilities
  */
 
-// Type exports
-export * from './types/hai';
-export * from './types/shanten';
+// ============================================
+// Type Definitions
+// ============================================
 
-// Hai utilities
-export * from './hai';
+export type {
+  // Suit types
+  Suit,
+  ManzuSuit,
+  PinzuSuit,
+  SouzuSuit,
+  JihaiSuit,
+  // Hai types
+  HaiId,
+  HaiKindId,
+  HaiCount,
+  HaiCounts,
+  TehaiString,
+} from './types/hai';
 
-// Shanten calculator
-export * from './shanten';
+export type { ShantenNumber } from './types/shanten';
+
+// ============================================
+// Hai Utilities
+// ============================================
+
+export {
+  // Type guards and factories
+  isHaiCounts,
+  createHaiCounts,
+  // Tehai conversion
+  isTehaiString,
+  tehaiStringToHaiCounts,
+} from './hai';
+
+// ============================================
+// Shanten Calculation
+// ============================================
+
+export {
+  // Constants
+  AGARI_STATE,
+  // Calculation functions
+  calculateShantenForRegularHand,
+} from './shanten';
