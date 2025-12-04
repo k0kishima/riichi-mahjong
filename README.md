@@ -1,12 +1,13 @@
 # riichi-mahjong
 
-Riichi Mahjong library for TypeScript.
+A TypeScript library for Japanese Riichi Mahjong (立直麻雀) calculations.
 
 ## Features
 
 - **Shanten calculation (向聴数)** - Calculate how many tiles away from tenpai
-- **Hai utilities (牌ユーティリティ)** - Tehai string notation parser and validators
-- **TypeScript support** - Full type definitions included
+- **Wait calculation (待ち牌)** - Calculate waiting tiles for tenpai hands
+- **MPSZ notation support** - Standard notation parser with Red Five support
+- **Full TypeScript support** - Complete type definitions included
 
 ## Installation
 
@@ -14,99 +15,48 @@ Riichi Mahjong library for TypeScript.
 npm install riichi-mahjong
 ```
 
-## Usage
-
-### Basic Example
+## Quick Start
 
 ```typescript
-import { tehaiStringToHaiCounts, calculateShantenForRegularHand, AGARI_STATE } from 'riichi-mahjong';
+import { 
+  mpszStringToHaiCounts, 
+  calculateShantenForRegularHand,
+  calculateWaits,
+  AGARI_STATE 
+} from 'riichi-mahjong';
 
-// Convert tehai string to hai counts
-const haiCounts = tehaiStringToHaiCounts("123m456p789s1122z");
+// Parse hand notation (MPSZ format)
+const hand = mpszStringToHaiCounts("123m456p789s1111z"); // 13 tiles
 
-// Calculate shanten number
-const shanten = calculateShantenForRegularHand(haiCounts);
+// Calculate shanten (tiles away from tenpai)
+const shanten = calculateShantenForRegularHand(hand);
 
 if (shanten === AGARI_STATE) {
-  console.log("Agari!"); // -1 means winning hand
+  console.log("Agari! (winning hand)");
 } else if (shanten === 0) {
-  console.log("Tenpai!"); // 0 means ready to win
+  console.log("Tenpai! (ready to win)");
+  
+  // Calculate waiting tiles
+  const waits = calculateWaits(hand);
+  console.log("Waiting for:", waits); // Array of tile indices (0-33)
 } else {
-  console.log(`${shanten}-shanten`); // 1+ means tiles away from tenpai
+  console.log(`${shanten}-shanten`);
 }
 ```
 
-### Tehai String Notation
+## MPSZ Notation
 
-Use standard notation where numbers are followed by suit letters:
+Standard notation where numbers are followed by suit letters:
 - `m` = manzu (萬子, characters)
 - `p` = pinzu (筒子, dots)
 - `s` = souzu (索子, bamboo)
 - `z` = jihai (字牌, honors: 1-7 = East, South, West, North, White, Green, Red)
+- `0` = red five (赤ドラ, treated as 5 for calculations)
 
-Examples:
-- `"123m456p789s1122z"` - 14 hai (complete hand)
-- `"123456789m1234p"` - 13 hai (before draw)
-
-## API Reference
-
-### Types
-
-#### `TehaiString`
-String representation of a hand (13 or 14 hai).
-
-#### `HaiCounts`
-Array of length 34 representing count (0-4) for each hai kind.
-
-#### `ShantenNumber`
-Number representing shanten state:
-- `-1` (AGARI_STATE) - Winning hand
-- `0` - Tenpai (ready to win)
-- `1+` - Number of tiles away from tenpai
-
-### Functions
-
-#### `tehaiStringToHaiCounts(tehai: TehaiString): HaiCounts`
-Converts tehai string notation to hai counts array.
-
-**Parameters:**
-- `tehai` - Tehai string (must be 13 or 14 hai)
-
-**Returns:** HaiCounts array
-
-**Throws:** Error if tehai is invalid
-
-**Example:**
-```typescript
-const counts = tehaiStringToHaiCounts("123m456p789s1122z");
-```
-
-#### `calculateShantenForRegularHand(haiCounts: HaiCounts): ShantenNumber`
-Calculates shanten number for regular hand (4 mentsu + 1 toitsu pattern).
-
-**Parameters:**
-- `haiCounts` - HaiCounts array (must be 13 or 14 hai)
-
-**Returns:** Shanten number (-1 to 8)
-
-**Example:**
-```typescript
-const shanten = calculateShantenForRegularHand(counts);
-```
-
-#### `isTehaiString(str: string): boolean`
-Type guard to check if a string is valid tehai notation.
-
-#### `isHaiCounts(arr: readonly number[]): boolean`
-Type guard to validate HaiCounts array.
-
-#### `createHaiCounts(arr: readonly number[]): HaiCounts`
-Creates validated HaiCounts from array.
-
-### Constants
-
-#### `AGARI_STATE`
-Constant value `-1` representing a winning hand.
+**Examples:**
+- `"123m456p789s1111z"` - 13 tiles
+- `"11123456788999s"` - 14 tiles (winning hand)
+- `"055m456p789s1111z"` - 13 tiles with red fives
 
 ## Development
 
@@ -120,6 +70,12 @@ npm install
 
 ```bash
 npm run build
+```
+
+### Test
+
+```bash
+npm test
 ```
 
 ### Lint
