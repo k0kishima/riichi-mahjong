@@ -15,22 +15,22 @@
  */
 
 /**
- * Suit character for manzu/characters (萬子)
+ * Suit character for manzu/characters (萬子).
  */
 export type ManzuSuit = 'm';
 
 /**
- * Suit character for pinzu/dots (筒子)
+ * Suit character for pinzu/dots (筒子).
  */
 export type PinzuSuit = 'p';
 
 /**
- * Suit character for souzu/bamboo (索子)
+ * Suit character for souzu/bamboo (索子).
  */
 export type SouzuSuit = 's';
 
 /**
- * Suit character for jihai/honors (字牌)
+ * Suit character for jihai/honors (字牌).
  */
 export type JihaiSuit = 'z';
 
@@ -40,17 +40,18 @@ export type JihaiSuit = 'z';
 export type Suit = ManzuSuit | PinzuSuit | SouzuSuit | JihaiSuit;
 
 /**
- * String representation of a mahjong hand/tehai (13 or 14 hai)
+ * String representation of a mahjong hand in MPSZ notation (13 or 14 hai).
  * Format: digits followed by suit letter (m/p/s/z)
- * Examples: "123m456p789s1111z" (14 hai), "111234567s11p567m" (14 hai)
+ * Examples: "123m456p789s1111z" (13 hai), "111234567s11p567m" (14 hai)
  * - m: manzu/characters (萬子)
  * - p: pinzu/dots (筒子)
  * - s: souzu/bamboo (索子)
  * - z: jihai/honors (字牌)
+ * - 0: red five (赤ドラ) - treated as 5 for shanten calculation
  *
  * Note: Must contain exactly 13 or 14 hai total
  */
-export type TehaiString = string;
+export type MpszString = string;
 
 /**
  * Unique identifier for a physical hai/tile (0-135)

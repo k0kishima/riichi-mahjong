@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { tehaiStringToHaiCounts, isTehaiString } from '@/hai';
+import { mpszStringToHaiCounts, isMpszString } from '@/hai';
 
-describe('tehaiStringToHaiCounts', () => {
+describe('mpszStringToHaiCounts', () => {
   describe('Valid cases - 14 hai tehai', () => {
     it('should convert manzu-centered tehai', () => {
-      const result = tehaiStringToHaiCounts('11223344556677m');
+      const result = mpszStringToHaiCounts('11223344556677m');
       expect(result[0]).toBe(2); // 1m x2
       expect(result[1]).toBe(2); // 2m x2
       expect(result[2]).toBe(2); // 3m x2
@@ -15,7 +15,7 @@ describe('tehaiStringToHaiCounts', () => {
     });
 
     it('should convert pinzu-centered tehai', () => {
-      const result = tehaiStringToHaiCounts('11223344556677p');
+      const result = mpszStringToHaiCounts('11223344556677p');
       expect(result[9]).toBe(2); // 1p x2
       expect(result[10]).toBe(2); // 2p x2
       expect(result[11]).toBe(2); // 3p x2
@@ -26,7 +26,7 @@ describe('tehaiStringToHaiCounts', () => {
     });
 
     it('should convert souzu-centered tehai', () => {
-      const result = tehaiStringToHaiCounts('11223344556677s');
+      const result = mpszStringToHaiCounts('11223344556677s');
       expect(result[18]).toBe(2); // 1s x2
       expect(result[19]).toBe(2); // 2s x2
       expect(result[20]).toBe(2); // 3s x2
@@ -37,7 +37,7 @@ describe('tehaiStringToHaiCounts', () => {
     });
 
     it('should convert tehai including jihai', () => {
-      const result = tehaiStringToHaiCounts('123m456p789s1111z');
+      const result = mpszStringToHaiCounts('123m456p789s1111z');
       // manzu
       expect(result[0]).toBe(1); // 1m
       expect(result[1]).toBe(1); // 2m
@@ -55,7 +55,7 @@ describe('tehaiStringToHaiCounts', () => {
     });
 
     it('should convert mixed suits tehai', () => {
-      const result = tehaiStringToHaiCounts('111234567s11p567m');
+      const result = mpszStringToHaiCounts('111234567s11p567m');
       // manzu
       expect(result[4]).toBe(1); // 5m
       expect(result[5]).toBe(1); // 6m
@@ -75,7 +75,7 @@ describe('tehaiStringToHaiCounts', () => {
 
   describe('Valid cases - 13 hai tehai', () => {
     it('should convert tenpai-shaped tehai', () => {
-      const result = tehaiStringToHaiCounts('111345677s11p567m');
+      const result = mpszStringToHaiCounts('111345677s11p567m');
       // manzu: 5,6,7
       expect(result[4]).toBe(1); // 5m
       expect(result[5]).toBe(1); // 6m
@@ -92,7 +92,7 @@ describe('tehaiStringToHaiCounts', () => {
     });
 
     it('should convert 123456789m1234p (13 hai)', () => {
-      const result = tehaiStringToHaiCounts('123456789m1234p');
+      const result = mpszStringToHaiCounts('123456789m1234p');
       // manzu: 1-9
       for (let i = 0; i < 9; i++) {
         expect(result[i]).toBe(1);
@@ -107,61 +107,61 @@ describe('tehaiStringToHaiCounts', () => {
 
   describe('Invalid cases - incorrect number of hai', () => {
     it('should throw error for 12 or fewer hai', () => {
-      expect(() => tehaiStringToHaiCounts('123m456p789s')).toThrow(
-        'Invalid tehai size: 9 hai (expected 13 or 14)'
+      expect(() => mpszStringToHaiCounts('123m456p789s')).toThrow(
+        'Invalid MPSZ string size: 9 hai (expected 13 or 14)'
       );
     });
 
     it('should throw error for 1 hai', () => {
-      expect(() => tehaiStringToHaiCounts('1m')).toThrow(
-        'Invalid tehai size: 1 hai (expected 13 or 14)'
+      expect(() => mpszStringToHaiCounts('1m')).toThrow(
+        'Invalid MPSZ string size: 1 hai (expected 13 or 14)'
       );
     });
 
     it('should throw error for 15 or more hai', () => {
-      expect(() => tehaiStringToHaiCounts('111122223333z444m')).toThrow(
-        'Invalid tehai size: 15 hai (expected 13 or 14)'
+      expect(() => mpszStringToHaiCounts('111122223333z444m')).toThrow(
+        'Invalid MPSZ string size: 15 hai (expected 13 or 14)'
       );
     });
 
     it('should throw error for empty string', () => {
-      expect(() => tehaiStringToHaiCounts('')).toThrow(
-        'Invalid tehai size: 0 hai (expected 13 or 14)'
+      expect(() => mpszStringToHaiCounts('')).toThrow(
+        'Invalid MPSZ string size: 0 hai (expected 13 or 14)'
       );
     });
   });
 
   describe('Invalid cases - invalid input', () => {
     it('should throw error when suit letter is missing', () => {
-      expect(() => tehaiStringToHaiCounts('12345678901234')).toThrow(
-        'Tehai string must end with a suit letter'
+      expect(() => mpszStringToHaiCounts('12345678901234')).toThrow(
+        'MPSZ string must end with a suit letter'
       );
     });
 
     it('should throw error for invalid suit character', () => {
-      expect(() => tehaiStringToHaiCounts('1234567890123x')).toThrow('Invalid character');
+      expect(() => mpszStringToHaiCounts('1234567890123x')).toThrow('Invalid character');
     });
 
     it('should throw error for invalid number', () => {
-      expect(() => tehaiStringToHaiCounts('0123456789012m')).toThrow('Invalid hai number');
+      expect(() => mpszStringToHaiCounts('123456789123x')).toThrow('Invalid character');
     });
 
     it('should throw error when same hai appears 5 or more times', () => {
-      expect(() => tehaiStringToHaiCounts('11111222233334m')).toThrow('Too many hai of kind');
+      expect(() => mpszStringToHaiCounts('11111222233334m')).toThrow('Too many hai of kind');
     });
 
     it('should throw error for jihai with number 8', () => {
-      expect(() => tehaiStringToHaiCounts('123456789m8888z')).toThrow('Invalid hai number');
+      expect(() => mpszStringToHaiCounts('123456789m8888z')).toThrow('Invalid hai number');
     });
 
     it('should throw error for jihai with number 9', () => {
-      expect(() => tehaiStringToHaiCounts('123456789m9999z')).toThrow('Invalid hai number');
+      expect(() => mpszStringToHaiCounts('123456789m9999z')).toThrow('Invalid hai number');
     });
   });
 
   describe('Edge cases', () => {
     it('should handle 14-hai tehai with 4 of the same hai', () => {
-      const result = tehaiStringToHaiCounts('11112345678999m');
+      const result = mpszStringToHaiCounts('11112345678999m');
       expect(result[0]).toBe(4); // 1m x4
       expect(result[1]).toBe(1); // 2m
       expect(result[2]).toBe(1); // 3m
@@ -173,35 +173,54 @@ describe('tehaiStringToHaiCounts', () => {
       expect(result[8]).toBe(3); // 9m x3
     });
   });
+  describe('Red Five cases', () => {
+    it('should treat 0m, 0p, 0s as 5', () => {
+      // 0m, 0p, 0s + others to make 13 tiles
+      const result = mpszStringToHaiCounts('0m0p0s1112223334z');
+      expect(result[4]).toBe(1); // 5m
+      expect(result[13]).toBe(1); // 5p
+      expect(result[22]).toBe(1); // 5s
+    });
+
+    it('should handle mixed red and normal fives', () => {
+      // 055m + others to make 13 tiles
+      const result = mpszStringToHaiCounts('055m1112223334z');
+      expect(result[4]).toBe(3); // 5m x3
+    });
+
+    it('should throw error for 0z (Red Five Jihai)', () => {
+      expect(() => mpszStringToHaiCounts('0z123456789123m')).toThrow('Red Five not allowed for Jihai');
+    });
+  });
 });
 
-describe('isTehaiString', () => {
+describe('isMpszString', () => {
   describe('Valid cases', () => {
     it('should return true for 14-hai tehai', () => {
-      expect(isTehaiString('11223344556677m')).toBe(true);
-      expect(isTehaiString('123m456p789s1111z')).toBe(true);
+      expect(isMpszString('11223344556677m')).toBe(true);
+      expect(isMpszString('123m456p789s1111z')).toBe(true);
     });
 
     it('should return true for 13-hai tehai', () => {
-      expect(isTehaiString('111345677s11p567m')).toBe(true);
-      expect(isTehaiString('123456789m1234p')).toBe(true);
+      expect(isMpszString('111345677s11p567m')).toBe(true);
+      expect(isMpszString('123456789m1234p')).toBe(true);
     });
   });
 
   describe('Invalid cases', () => {
     it('should return false for 12 or fewer hai tehai', () => {
-      expect(isTehaiString('123m456p789s')).toBe(false);
-      expect(isTehaiString('1m')).toBe(false);
-      expect(isTehaiString('')).toBe(false);
+      expect(isMpszString('123m456p789s')).toBe(false);
+      expect(isMpszString('1m')).toBe(false);
+      expect(isMpszString('')).toBe(false);
     });
 
     it('should return false for 15 or more hai tehai', () => {
-      expect(isTehaiString('11111222223333z44m')).toBe(false);
+      expect(isMpszString('11111222223333z44m')).toBe(false);
     });
 
     it('should return false for invalid format', () => {
-      expect(isTehaiString('1234567890123x')).toBe(false);
-      expect(isTehaiString('12345678901234')).toBe(false);
+      expect(isMpszString('1234567890123x')).toBe(false);
+      expect(isMpszString('12345678901234')).toBe(false);
     });
   });
 });

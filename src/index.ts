@@ -22,7 +22,7 @@ export type {
   HaiKindId,
   HaiCount,
   HaiCounts,
-  TehaiString,
+  MpszString,
 } from './types/hai';
 
 export type { ShantenNumber } from './types/shanten';
@@ -35,9 +35,9 @@ export {
   // Type guards and factories
   isHaiCounts,
   createHaiCounts,
-  // Tehai conversion
-  isTehaiString,
-  tehaiStringToHaiCounts,
+  // MPSZ conversion
+  isMpszString,
+  mpszStringToHaiCounts,
 } from './hai';
 
 // ============================================
@@ -50,3 +50,8 @@ export {
   // Calculation functions
   calculateShantenForRegularHand,
 } from './shanten';
+
+export {
+  calculateWaits,
+} from './wait';
+

@@ -9,12 +9,12 @@ import { ShantenNumber } from '@/types/shanten';
 import { validateHaiCount } from '@/hai';
 
 /**
- * Agari state constant (winning hand)
+ * Agari state constant (winning hand / 和了).
  */
 export const AGARI_STATE = -1;
 
 /**
- * Internal state for shanten calculation
+ * Internal state for shanten calculation.
  */
 interface ShantenState {
   tiles: number[];
@@ -97,7 +97,7 @@ function updateMinShanten(state: ShantenState): void {
 }
 
 /**
- * Increment a set (pon) in the state
+ * Increment a set (pon / koutsu / 刻子) in the state.
  */
 function increaseSet(state: ShantenState, index: number): void {
   state.tiles[index] -= 3;
@@ -113,7 +113,7 @@ function decreaseSet(state: ShantenState, index: number): void {
 }
 
 /**
- * Increment a pair in the state
+ * Increment a pair (toitsu / 対子) in the state.
  */
 function increasePair(state: ShantenState, index: number): void {
   state.tiles[index] -= 2;
@@ -129,7 +129,7 @@ function decreasePair(state: ShantenState, index: number): void {
 }
 
 /**
- * Increment a sequence (chi) in the state
+ * Increment a sequence (chi / shuntsu / 順子) in the state.
  */
 function increaseSequence(state: ShantenState, index: number): void {
   state.tiles[index] -= 1;
@@ -149,7 +149,7 @@ function decreaseSequence(state: ShantenState, index: number): void {
 }
 
 /**
- * Increment a tatsu (incomplete sequence, e.g., 12 or 13) in the state
+ * Increment a tatsu (incomplete sequence / 塔子, e.g., 12 or 13) in the state.
  */
 function increaseTatsuFirst(state: ShantenState, index: number): void {
   state.tiles[index] -= 1;
@@ -383,12 +383,12 @@ function processOneTile(state: ShantenState, index: number, normalizedIndex: num
 }
 
 /**
- * Calculate shanten for regular tehai (4 mentsu + 1 toitsu pattern)
+ * Calculate shanten for regular tehai (4 mentsu + 1 toitsu pattern / 4面子1雀頭).
  * @param haiCounts - HaiCounts (length 34 array with counts 0-4)
- * @returns Shanten number (-1: agari, 0: tenpai, 1+: shanten)
+ * @returns Shanten number (-1: agari/和了, 0: tenpai/聴牌, 1+: shanten/向聴数)
  *
  * @example
- * const counts = tehaiStringToHaiCounts("123m456p789s11z");
+ * const counts = mpszStringToHaiCounts("123m456p789s1111z");
  * calculateShantenForRegularHand(counts); // Returns shanten number
  */
 export function calculateShantenForRegularHand(haiCounts: HaiCounts): ShantenNumber {

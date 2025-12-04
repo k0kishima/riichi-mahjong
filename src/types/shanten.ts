@@ -9,9 +9,9 @@
  */
 
 /**
- * Shanten number
- * -1 means winning hand (agari)
- * 0 means ready to win (tenpai)
+ * Shanten number (向聴数).
+ * -1 means winning hand (agari / 和了)
+ * 0 means ready to win (tenpai / 聴牌)
  * 1+ means tiles away from tenpai
  */
 export type ShantenNumber = number;

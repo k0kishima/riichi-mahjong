@@ -2,7 +2,27 @@
  * Hai (tile) utilities
  */
 
-import { TehaiString, HaiCounts, Suit } from '@/types/hai';
+import { MpszString, HaiCounts, Suit } from '@/types/hai';
+
+/**
+ * Offset for Manzu (萬子) tiles (0-8)
+ */
+export const MANZU_OFFSET = 0;
+
+/**
+ * Offset for Pinzu (筒子) tiles (9-17)
+ */
+export const PINZU_OFFSET = 9;
+
+/**
+ * Offset for Souzu (索子) tiles (18-26)
+ */
+export const SOUZU_OFFSET = 18;
+
+/**
+ * Offset for Jihai (字牌) tiles (27-33)
+ */
+export const JIHAI_OFFSET = 27;
 
 /**
  * Type guard to validate that an array is valid HaiCounts
@@ -35,7 +55,9 @@ export function createHaiCounts(arr: readonly number[]): HaiCounts {
 }
 
 /**
- * Validate that hai counts match expected total
+ * Validate that hai counts match expected total.
+ * Useful for checking "Shouhai" (少牌 - too few tiles) or "Tahai" (多牌 - too many tiles).
+ *
  * @param haiCounts - Hai counts array to validate
  * @param expected - Expected total count(s). Can be a single number or array of valid numbers
  * @throws Error if total doesn't match expected value(s)
@@ -76,13 +98,13 @@ function isSuit(char: string): char is Suit {
 function getSuitOffset(suit: Suit): number {
   switch (suit) {
     case 'm':
-      return 0; // manzu: 0-8
+      return MANZU_OFFSET; // manzu: 0-8
     case 'p':
-      return 9; // pinzu: 9-17
+      return PINZU_OFFSET; // pinzu: 9-17
     case 's':
-      return 18; // souzu: 18-26
+      return SOUZU_OFFSET; // souzu: 18-26
     case 'z':
-      return 27; // jihai: 27-33
+      return JIHAI_OFFSET; // jihai: 27-33
   }
 }
 
@@ -95,8 +117,17 @@ function getSuitOffset(suit: Suit): number {
 function validateAndParseHaiNumber(digit: string, suit: Suit): number {
   const num = parseInt(digit, 10);
 
-  if (isNaN(num) || num < 1 || num > 9) {
+  if (isNaN(num) || num < 0 || num > 9) {
     throw new Error(`Invalid hai number: ${digit}`);
+  }
+
+  // Handle Red Five (0) -> treat as 5
+  if (num === 0) {
+    // Red Five is not valid for Jihai
+    if (suit === 'z') {
+      throw new Error(`Invalid hai number: ${digit} (Red Five not allowed for Jihai)`);
+    }
+    return 5;
   }
 
   // Validate number range for jihai (z)
@@ -133,17 +164,17 @@ function processHaiNumbers(numbers: string, suit: Suit, counts: number[]): void 
 }
 
 /**
- * Type guard to check if a string is a valid TehaiString (13 or 14 hai)
+ * Type guard to check if a string is a valid MpszString (13 or 14 hai)
  * @param str - String to check
- * @returns true if the string represents a valid tehai
+ * @returns true if the string represents a valid MPSZ string
  *
  * @example
- * isTehaiString("123m456p789s1111z") // true (14 hai)
- * isTehaiString("123m") // false (only 3 hai)
+ * isMpszString("123m456p789s1111z") // true (14 hai)
+ * isMpszString("123m") // false (only 3 hai)
  */
-export function isTehaiString(str: string): str is TehaiString {
+export function isMpszString(str: string): str is MpszString {
   try {
-    tehaiStringToHaiCounts(str);
+    mpszStringToHaiCounts(str);
     return true;
   } catch {
     return false;
@@ -151,39 +182,39 @@ export function isTehaiString(str: string): str is TehaiString {
 }
 
 /**
- * Convert tehai string notation to hai counts array
- * @param tehai - Tehai string like "123m456p789s1111z" (must be 13 or 14 hai)
+ * Convert MPSZ string notation to hai counts array
+ * @param mpsz - MPSZ string like "123m456p789s1111z" (must be 13 or 14 hai)
  * @returns HaiCounts (length 34 array with counts 0-4)
- * @throws Error if tehai does not contain exactly 13 or 14 hai
+ * @throws Error if MPSZ string does not contain exactly 13 or 14 hai
  *
  * @example
- * tehaiStringToHaiCounts("123m456p789s1111z")
+ * mpszStringToHaiCounts("123m456p789s1111z")
  * // Returns array where indices 0,1,2 (manzu 1,2,3) have count 1,
  * // indices 12,13,14 (pinzu 4,5,6) have count 1, etc.
  */
-export function tehaiStringToHaiCounts(tehai: TehaiString): HaiCounts {
+export function mpszStringToHaiCounts(mpsz: MpszString): HaiCounts {
   const counts: number[] = new Array(34).fill(0);
   let currentNumbers = '';
 
-  for (const char of tehai) {
+  for (const char of mpsz) {
     if (isSuit(char)) {
       processHaiNumbers(currentNumbers, char, counts);
       currentNumbers = '';
     } else if (char >= '0' && char <= '9') {
       currentNumbers += char;
     } else {
-      throw new Error(`Invalid character in tehai string: ${char}`);
+      throw new Error(`Invalid character in MPSZ string: ${char}`);
     }
   }
 
   if (currentNumbers.length > 0) {
-    throw new Error('Tehai string must end with a suit letter (m/p/s/z)');
+    throw new Error('MPSZ string must end with a suit letter (m/p/s/z)');
   }
 
-  // Validate tehai size (must be 13 or 14 hai)
+  // Validate size (must be 13 or 14 hai)
   const total = counts.reduce((sum, count) => sum + count, 0);
   if (total !== 13 && total !== 14) {
-    throw new Error(`Invalid tehai size: ${total} hai (expected 13 or 14)`);
+    throw new Error(`Invalid MPSZ string size: ${total} hai (expected 13 or 14)`);
   }
 
   return counts as HaiCounts;
