@@ -106,27 +106,9 @@ describe('mpszStringToHaiCounts', () => {
   });
 
   describe('Invalid cases - incorrect number of hai', () => {
-    it('should throw error for 12 or fewer hai', () => {
-      expect(() => mpszStringToHaiCounts('123m456p789s')).toThrow(
-        'Invalid MPSZ string size: 9 hai (expected 13 or 14)'
-      );
-    });
-
-    it('should throw error for 1 hai', () => {
-      expect(() => mpszStringToHaiCounts('1m')).toThrow(
-        'Invalid MPSZ string size: 1 hai (expected 13 or 14)'
-      );
-    });
-
-    it('should throw error for 15 or more hai', () => {
-      expect(() => mpszStringToHaiCounts('111122223333z444m')).toThrow(
-        'Invalid MPSZ string size: 15 hai (expected 13 or 14)'
-      );
-    });
-
     it('should throw error for empty string', () => {
       expect(() => mpszStringToHaiCounts('')).toThrow(
-        'Invalid MPSZ string size: 0 hai (expected 13 or 14)'
+        'Invalid MPSZ string size: 0 hai'
       );
     });
   });
@@ -207,20 +189,24 @@ describe('isMpszString', () => {
     });
   });
 
-  describe('Invalid cases', () => {
-    it('should return false for 12 or fewer hai tehai', () => {
-      expect(isMpszString('123m456p789s')).toBe(false);
-      expect(isMpszString('1m')).toBe(false);
+  describe('Partial/Overfilled cases (Now Valid)', () => {
+    it('should return true for 12 or fewer hai tehai', () => {
+      expect(isMpszString('123m456p789s')).toBe(true);
+      expect(isMpszString('1m')).toBe(true);
+    });
+
+    it('should return false for empty string', () => {
       expect(isMpszString('')).toBe(false);
     });
 
-    it('should return false for 15 or more hai tehai', () => {
-      expect(isMpszString('11111222223333z44m')).toBe(false);
-    });
-
-    it('should return false for invalid format', () => {
-      expect(isMpszString('1234567890123x')).toBe(false);
-      expect(isMpszString('12345678901234')).toBe(false);
+    it('should return true for 15 or more hai tehai', () => {
+      expect(isMpszString('1111222233334444m')).toBe(true);
     });
   });
+
+  it('should return false for invalid format', () => {
+    expect(isMpszString('1234567890123x')).toBe(false);
+    expect(isMpszString('12345678901234')).toBe(false);
+  });
 });
+

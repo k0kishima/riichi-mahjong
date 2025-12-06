@@ -3,7 +3,9 @@
 ## Documentation Strategy (ドキュメンテーション戦略)
 This project follows a specific TSDoc convention to facilitate both English-speaking OSS standards and Japanese-based semantic search for AI sessions.
 
-### Rule: **English Description + Japanese Keywords**
+### Rule: **Strict TSDoc Format**
+- All documentation comments must strictly follow the **TSDoc** standard (e.g., use `@param`, `@returns`, `@example`).
+- Free-form comments for function/class headers are **prohibited**.
 - **Primary Description**: Must be in **English**.
 - **Indexing Keywords**: Include Japanese terms (Kanji/Kana) in parentheses or a dedicated section to act as "anchors" for semantic search and context understanding.
 - **Glossary**: Use consistent terminology.
@@ -11,17 +13,14 @@ This project follows a specific TSDoc convention to facilitate both English-spea
 ### Example
 ```typescript
 /**
- * Mentsu (面子) - A set of 3 or 4 tiles.
+ * Calculates the shanten number for a given hand.
+ * (手牌のシャンテン数を計算する)
+ *
+ * @param tiles - The current state of the tiles (HaiCounts).
+ * @returns The shanten number (0 = Tenpai, -1 = Agari).
+ * @throws Error if the tile count is invalid.
  */
-export interface Mentsu {
-    type: MentsuType;
-    /** 
-     * Whether the meld is open/exposed (Naki / 鳴き).
-     * - true: Open/Exposed (Chi, Pon, Min-Kan)
-     * - false: Closed/Concealed (An-Kou, An-Kan)
-     */
-    isOpen: boolean;
-}
+export function calculateShanten(tiles: HaiCounts): number { ... }
 ```
 
 ## Terminology Map
