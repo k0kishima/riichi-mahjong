@@ -1,0 +1,35 @@
+# AI Agent Instructions - Riichi Mahjong Project
+
+## Documentation Strategy (ドキュメンテーション戦略)
+This project follows a specific TSDoc convention to facilitate both English-speaking OSS standards and Japanese-based semantic search for AI sessions.
+
+### Rule: **English Description + Japanese Keywords**
+- **Primary Description**: Must be in **English**.
+- **Indexing Keywords**: Include Japanese terms (Kanji/Kana) in parentheses or a dedicated section to act as "anchors" for semantic search and context understanding.
+- **Glossary**: Use consistent terminology.
+
+### Example
+```typescript
+/**
+ * Mentsu (面子) - A set of 3 or 4 tiles.
+ */
+export interface Mentsu {
+    type: MentsuType;
+    /** 
+     * Whether the meld is open/exposed (Naki / 鳴き).
+     * - true: Open/Exposed (Chi, Pon, Min-Kan)
+     * - false: Closed/Concealed (An-Kou, An-Kan)
+     */
+    isOpen: boolean;
+}
+```
+
+## Terminology Map
+- Meld -> Mentsu (面子)
+- Head -> Head / Jantou (雀頭)
+- Sequence -> Shuntsu (順子)
+- Triplet -> Koutsu (刻子)
+- Quad -> Kantsu (槓子)
+- Pair -> Toitsu (対子)
+- Win -> Agari (和了)
+- Ready -> Tenpai (聴牌)
