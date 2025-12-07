@@ -3,7 +3,6 @@ import { GameRules } from '@/types/game';
 
 /**
  * Definition of a Yaku Rule.
- * (役の条件定義)
  */
 export interface YakuRule {
     name: YakuName;
@@ -12,19 +11,17 @@ export interface YakuRule {
     isYakuman: boolean;
     /**
      * Checks if the yaku condition is met.
-     * (役の成立条件を満たすか判定する)
      */
     check: (hand: HandStructure, config: HandConfig, rules: GameRules) => boolean;
 }
 
 /**
  * Yaku Rules Collection.
- * (役のルール定義集)
  */
 export const YakuRules = {
     /**
      * Tanyao (All Simples).
-     * (断幺九: 1,9,字牌を含まない手)
+     * (断幺九)
      */
     Tanyao: {
         name: YakuName.Tanyao,
@@ -56,7 +53,7 @@ export const YakuRules = {
 
     /**
      * Pinfu (Flat Hand).
-     * (平和: 面子が全て順子、頭が役牌でない、待ちが両面)
+     * (平和)
      */
     Pinfu: {
         name: YakuName.Pinfu,
@@ -248,7 +245,7 @@ export const YakuRules = {
 
     /**
      * Riichi (Reach).
-     * (立直: メンゼンで聴牌し宣言する)
+     * (立直)
      */
     Riichi: {
         name: YakuName.Riichi,
@@ -263,7 +260,7 @@ export const YakuRules = {
 
     /**
      * Menzen Tsumo (Self Draw).
-     * (門前清自摸和: メンゼンでツモあがり)
+     * (門前清自摸和)
      */
     MenzenTsumo: {
         name: YakuName.MenzenTsumo,
@@ -278,7 +275,7 @@ export const YakuRules = {
 
     /**
      * Ippatsu (One Shot).
-     * (一発: 立直後、一巡以内にあがる)
+     * (一発)
      */
     Ippatsu: {
         name: YakuName.Ippatsu,
@@ -322,7 +319,6 @@ export const createYakuhaiRule = (tileIndex: number, yakuName: YakuName): YakuRu
 
 /**
  * Returns a list of all appliable rules based on the hand configuration.
- * (設定に基づいて適用可能な全ルールのリストを返す)
  */
 export function getAppliableRules(config: HandConfig): YakuRule[] {
     // 1. Static Rules (Standard Yaku)

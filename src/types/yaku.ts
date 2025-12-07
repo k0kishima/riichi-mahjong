@@ -18,18 +18,22 @@ export interface HandConfig {
     isChiihou: boolean;
 
     // Wind settings
-    bakaze: number; // 27: East, 28: South, 29: West, 30: North
-    jikaze: number; // 27: East, 28: South, 29: West, 30: North
+    /** 27: East, 28: South, 29: West, 30: North */
+    bakaze: number;
+    /** 27: East, 28: South, 29: West, 30: North */
+    jikaze: number;
 
     // Dora
-    doraTiles: number[]; // Indices of dora tiles
-    uraDoraTiles: number[]; // Indices of ura dora tiles
+    /** Indices of dora tiles */
+    doraTiles: number[];
+    /** Indices of ura dora tiles */
+    uraDoraTiles: number[];
 }
 
 
 
 /**
- * Yaku Names (役名)
+ * Yaku Names
  * Defined as a const object for type safety and autocompletion.
  */
 export const YakuName = {
@@ -69,8 +73,9 @@ export interface Yaku {
  */
 export interface HandResponse {
     cost: {
-        main: number; // Total points (or payment from one person for ron)
-        additional?: number; // Payment from others for tsumo (dealer/non-dealer split)
+        main: number;
+        /** Payment from others for tsumo (dealer/non-dealer split) */
+        additional?: number;
         total: number;
     } | null;
     han: number;
@@ -84,7 +89,6 @@ export interface HandResponse {
 
 /**
  * Result of Agari Check (Check if hand is checking)
- * (あがり判定の結果)
  */
 export interface AgariResult {
     isAgari: boolean;
@@ -96,7 +100,7 @@ export interface AgariResult {
 
 
 /**
- * Mentsu Types (面子の種類)
+ * Mentsu Types
  */
 export const MentsuType = {
     /** Sequence (Shuntsu / 順子) e.g., 1-2-3 */
@@ -134,7 +138,6 @@ export interface Head {
 
 /**
  * A partial unit of a complete hand (Mentsu or Head).
- * (あがり形の構成単位)
  */
 export type Block = Mentsu | Head;
 
@@ -142,8 +145,12 @@ export type Block = Mentsu | Head;
  * Represents a decomposed hand structure (4 mentsu + 1 head, or chitoitsu/kokushi)
  */
 export interface HandStructure {
-    mentsu: Mentsu[]; // Should be 4 for standard hand
-    head: Head;     // should be 1 pair
-    wait: HaiKindId[]; // The waiting tile(s) indices - conceptually, usually just the win tile
-    winTile: HaiKindId; // The tile that completed the hand
+    /** Should be 4 for standard hand */
+    mentsu: Mentsu[];
+    /** should be 1 pair */
+    head: Head;
+    /** The waiting tile(s) indices - conceptually, usually just the win tile */
+    wait: HaiKindId[];
+    /** The tile that completed the hand */
+    winTile: HaiKindId;
 }

@@ -1,5 +1,5 @@
 /**
- * Game Rules (ゲームのルール設定)
+ * Game Rules
  */
 export interface GameRules {
     hasKuitan: boolean;

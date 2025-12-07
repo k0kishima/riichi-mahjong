@@ -6,7 +6,6 @@ import { getAppliableRules } from '../yaku/rules';
 
 /**
  * Detects Yaku from the hand.
- * (手牌から成立する役を特定する)
  * 
  * @param haiCounts - The hand to evaluate (must be 14 tiles total).
  * @param winTile - The tile that completed the hand.

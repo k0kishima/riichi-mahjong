@@ -3,14 +3,18 @@ import { validateHaiCount } from '@/hai';
 import { calculateShantenForRegularHand } from '@/shanten';
 
 /**
- * Calculate waiting tiles (machi / 待ち) for a given hand.
+ * Calculate waiting tiles (machi / 待ち) for a given hand configuration.
  *
- * This function calculates the waiting tiles for a hand with 13 tiles (before drawing a tile).
- * It validates that the hand has exactly 13 tiles to prevent "Shouhai" (少牌 - too few tiles)
- * or "Tahai" (多牌 - too many tiles).
+ * Checks if adding a tile completes the hand structure (e.g. 4 melds + 1 pair).
+ *
+ * @remarks
+ * **IMPORTANT**: This function ONLY checks for the structural completion of the hand.
+ * It does NOT verify if the completed hand has any valid Yaku (Winning Condition).
+ * A tile returned by this function might result in a "Yaku Nashi" (No Yaku) hand.
+ * To confirm if a hand can legally win, you must verify the existence of Yaku (e.g. using `detectAgari`).
  *
  * @param haiCounts - HaiCounts (length 34 array with counts 0-4). Must be 13 tiles.
- * @returns Array of indices (0-33) representing the waiting tiles
+ * @returns Array of indices (0-33) representing the waiting tiles (tiles that complete the structure).
  *
  * @example
  * const counts = mpszStringToHaiCounts("123m456p789s1111z"); // 13 tiles

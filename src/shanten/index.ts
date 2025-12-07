@@ -18,13 +18,20 @@ export const AGARI_STATE = -1;
  */
 interface ShantenState {
   tiles: number[];
-  numberMentsu: number; // Number of complete melds (面子: 刻子/順子)
-  numberTatsu: number; // Number of incomplete sequences (塔子)
-  numberToitsu: number; // Number of pairs (対子)
-  honorTileAdjustment: number; // Special adjustment counter for jihai/honor tiles (字牌)
-  flagFourCopies: number; // Bitmap for tiles with 4 copies
-  flagIsolatedTiles: number; // Bitmap for isolated tiles
-  minShanten: number; // Minimum shanten found
+  /** Number of complete melds (面子: 刻子/順子) */
+  numberMentsu: number;
+  /** Number of incomplete sequences (塔子) */
+  numberTatsu: number;
+  /** Number of pairs (対子) */
+  numberToitsu: number;
+  /** Special adjustment counter for jihai/honor tiles (字牌) */
+  honorTileAdjustment: number;
+  /** Bitmap for tiles with 4 copies */
+  flagFourCopies: number;
+  /** Bitmap for isolated tiles */
+  flagIsolatedTiles: number;
+  /** Minimum shanten found */
+  minShanten: number;
 }
 
 /**

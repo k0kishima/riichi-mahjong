@@ -32,3 +32,23 @@ export function calculateShanten(tiles: HaiCounts): number { ... }
 - Pair -> Toitsu (対子)
 - Win -> Agari (和了)
 - Ready -> Tenpai (聴牌)
+
+## Coding Standards (コーディング規約)
+
+### Documentation
+1.  **Strict TSDoc**: Use `/** ... */` for all functions, interfaces, and types. Do not use `//` for property documentation.
+2.  **English Primary**: Comments must be written in English.
+3.  **No Redundant Translations**: Do NOT literally translate the English description into Japanese.
+    - Bad: `Definition of a rule. (ルールの定義)`
+    - Good: `Definition of a rule.` (If "rule" is not a specific domain term needed for search)
+4.  **Ubiquitous Language**: Keep Japanese terms in parentheses ONLY for specific domain concepts to aid semantic search.
+    - Good: `Tanyao (断幺九)`
+    - Good: `Mentsu (面子)`
+
+### Testing
+1.  **Strict Verification**: When testing arrays of Yaku, use `expect(result).not.toContain(badYaku)` or strict equality `toEqual(['ExpectedYaku'])` rather than just `toContain`. Avoid loose checks that might miss incorrect extra Yaku.
+2.  **Branch Coverage**: For boolean configuration flags (e.g., `hasKuitan`), ensure tests cover both `true` and `false` scenarios.
+
+### Architecture
+1.  **Game Rules Separation**: Game-wide static rules (e.g., `GameRules` for Kuitan, AkaDora) must be defined in `src/types/game.ts` and separated from transient hand configuration (`HandConfig`).
+2.  **Pure Functions**: Yaku detection logic should be pure functions dependent only on inputs.

@@ -56,7 +56,7 @@ export function createHaiCounts(arr: readonly number[]): HaiCounts {
 
 /**
  * Validate that hai counts match expected total.
- * (手牌の枚数が正しいか検証する。少牌/多牌のチェック)
+ * (少牌/多牌のチェック)
  *
  * @param haiCounts - Hai counts array to validate.
  * @param expected - Expected total count(s). Can be a single number or array of valid numbers.
@@ -183,7 +183,6 @@ export function isMpszString(str: string): str is MpszString {
 
 /**
  * Convert MPSZ string notation to hai counts array.
- * (MPSZ形式の文字列をHaiCounts配列に変換する)
  *
  * @param mpsz - MPSZ string like "123m456p789s1111z" (must be 13 or 14 hai).
  * @returns HaiCounts (length 34 array with counts 0-4).
