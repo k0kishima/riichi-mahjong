@@ -327,6 +327,34 @@ export const YakuRules = {
         }
     } as YakuRule,
 
+    KokushiMusou: {
+        name: YakuName.KokushiMusou,
+        hanOpen: 0, // closed only
+        hanClosed: 13,
+        isYakuman: true,
+        check: (hand: HandStructure, _config: HandConfig, _rules: GameRules): boolean => {
+            // Check if structure is Kokushi
+            if (hand.mentsu.length === 1 && hand.mentsu[0].type === MentsuType.Kokushi) {
+                return true;
+            }
+            return false;
+        }
+    } as YakuRule,
+
+    Chiitoitsu: {
+        name: YakuName.Chiitoitsu,
+        hanOpen: 0, // closed only
+        hanClosed: 2,
+        isYakuman: false,
+        check: (hand: HandStructure, _config: HandConfig, _rules: GameRules): boolean => {
+            // Check if structure is Chiitoitsu (6 Toitsu mentsu + 1 Head)
+            if (hand.mentsu.length === 6 && hand.mentsu.every(m => m.type === MentsuType.Toitsu)) {
+                return true;
+            }
+            return false;
+        }
+    } as YakuRule,
+
     /**
      * Menzen Tsumo (Self Draw).
      * (門前清自摸和)

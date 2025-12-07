@@ -154,4 +154,48 @@ describe('detectAgari', () => {
         // Should NOT be Chinitsu anywhere
         expect(yakuList).not.toContain(YakuName.Chinitsu);
     });
+    test('detects Chiitoitsu correctly', () => {
+        // 11 22 33 m 44 55 66 p 77 s (14 tiles)
+        const config = createConfig();
+        const rules = createGameRules();
+        const handStr = '112233m445566p77s';
+        const counts = mpszStringToHaiCounts(handStr);
+        const winTile = 6; // 7s (index 24? 18+6)
+
+        // 7s is 18+6 = 24.
+        // wait, mpszStringToHaiCounts inputs:
+        // 1-9m: 0-8
+        // 1-9p: 9-17
+        // 1-9s: 18-26
+        // 1-7z: 27-33
+        // 7s is 18 + 7 - 1 = 24.
+
+        const yakuList = detectAgari(counts, 24, config, rules);
+        expect(yakuList).toContain(YakuName.Chiitoitsu);
+        // It might also be Tanyao + Pinfu (implied Ryanpeiko logic if 223344 works, but here 11 22 33 includes terminals 1m, so No Tanyao, No Pinfu if 11 is pair?)
+        // 112233m -> 123m + 123m (Standard)
+        // 445566p -> 456p + 456p (Standard)
+        // 77s (Head)
+        // Agari 1: 123m, 123m, 456p, 456p, 77s(Head).
+        // Yaku: Iipeiko x 2? (Not implemented).
+        // Tanyao: No (1m is terminal).
+        // Pinfu: Yes (if closed and wait valid). Wait is 7s (pair wait -> No Pinfu).
+        // So Standard form has 0 Han (unless Iipeiko implemented).
+        // Chiitoitsu has 2 Han.
+        // Win: Chiitoitsu.
+    });
+
+    test('detects Kokushi Musou correctly', () => {
+        // 19m 19p 19s 1234567z + 1m (Pair 1m)
+        const config = createConfig();
+        const rules = createGameRules();
+        const handStr = '19m19p19s1234567z1m';
+        const counts = mpszStringToHaiCounts(handStr);
+        // Win tile 1m (0)
+
+        const yakuList = detectAgari(counts, 0, config, rules);
+
+        expect(yakuList).toContain(YakuName.KokushiMusou);
+    });
 });
+

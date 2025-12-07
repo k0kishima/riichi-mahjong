@@ -58,6 +58,7 @@ export const YakuName = {
 
     // Others
     Chiitoitsu: 'Chiitoitsu',
+    KokushiMusou: 'KokushiMusou',
 } as const;
 
 export type YakuName = typeof YakuName[keyof typeof YakuName];
@@ -113,6 +114,10 @@ export const MentsuType = {
     Koutsu: 'koutsu',
     /** Quad (Kantsu / 槓子) e.g., 1-1-1-1 */
     Kantsu: 'kantsu',
+    /** Pair (Toitsu / 対子) - Used for Chiitoitsu */
+    Toitsu: 'toitsu',
+    /** Kokushi elements (国士無双) - Used for Kokushi Musou */
+    Kokushi: 'kokushi',
 } as const;
 
 export type MentsuType = typeof MentsuType[keyof typeof MentsuType];
