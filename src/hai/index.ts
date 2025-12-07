@@ -2,7 +2,7 @@
  * Hai (tile) utilities
  */
 
-import { MpszString, HaiCounts, Suit } from '@/types/hai';
+import type { HaiCounts, MpszString, Suit } from "@/types/hai";
 
 /**
  * Offset for Manzu (萬子) tiles (0-8)
@@ -33,7 +33,7 @@ export const JIHAI_OFFSET = 27;
  * isHaiCounts([1, 2, 0, ...]) // true if length 34 and all values 0-4
  */
 export function isHaiCounts(arr: readonly number[]): arr is HaiCounts {
-  return arr.length === 34 && arr.every((c) => c >= 0 && c <= 4);
+	return arr.length === 34 && arr.every((c) => c >= 0 && c <= 4);
 }
 
 /**
@@ -46,12 +46,12 @@ export function isHaiCounts(arr: readonly number[]): arr is HaiCounts {
  * const counts = createHaiCounts([2, 0, 1, 0, ..., 0]); // 34 elements
  */
 export function createHaiCounts(arr: readonly number[]): HaiCounts {
-  if (!isHaiCounts(arr)) {
-    throw new Error(
-      `Invalid HaiCounts: expected length 34 with values 0-4, got length ${arr.length}`,
-    );
-  }
-  return arr;
+	if (!isHaiCounts(arr)) {
+		throw new Error(
+			`Invalid HaiCounts: expected length 34 with values 0-4, got length ${arr.length}`,
+		);
+	}
+	return arr;
 }
 
 /**
@@ -67,18 +67,21 @@ export function createHaiCounts(arr: readonly number[]): HaiCounts {
  * validateHaiCount(counts, [13, 14]); // Must be 13 or 14 hai
  */
 export function validateHaiCount(
-  haiCounts: HaiCounts,
-  expected: number | number[]
+	haiCounts: HaiCounts,
+	expected: number | number[],
 ): void {
-  const total = haiCounts.reduce<number>((sum, count) => sum + count, 0);
-  const expectedValues = Array.isArray(expected) ? expected : [expected];
+	const total = haiCounts.reduce<number>((sum, count) => sum + count, 0);
+	const expectedValues = Array.isArray(expected) ? expected : [expected];
 
-  if (!expectedValues.includes(total)) {
-    const expectedStr = expectedValues.length === 1
-      ? String(expectedValues[0])
-      : expectedValues.join(' or ');
-    throw new Error(`Invalid hai count: ${total} hai (expected ${expectedStr})`);
-  }
+	if (!expectedValues.includes(total)) {
+		const expectedStr =
+			expectedValues.length === 1
+				? String(expectedValues[0])
+				: expectedValues.join(" or ");
+		throw new Error(
+			`Invalid hai count: ${total} hai (expected ${expectedStr})`,
+		);
+	}
 }
 
 /**
@@ -87,7 +90,7 @@ export function validateHaiCount(
  * @returns true if the character is a valid suit
  */
 function isSuit(char: string): char is Suit {
-  return char === 'm' || char === 'p' || char === 's' || char === 'z';
+	return char === "m" || char === "p" || char === "s" || char === "z";
 }
 
 /**
@@ -96,16 +99,16 @@ function isSuit(char: string): char is Suit {
  * @returns Offset for hai kind ID calculation
  */
 function getSuitOffset(suit: Suit): number {
-  switch (suit) {
-    case 'm':
-      return MANZU_OFFSET; // manzu: 0-8
-    case 'p':
-      return PINZU_OFFSET; // pinzu: 9-17
-    case 's':
-      return SOUZU_OFFSET; // souzu: 18-26
-    case 'z':
-      return JIHAI_OFFSET; // jihai: 27-33
-  }
+	switch (suit) {
+		case "m":
+			return MANZU_OFFSET; // manzu: 0-8
+		case "p":
+			return PINZU_OFFSET; // pinzu: 9-17
+		case "s":
+			return SOUZU_OFFSET; // souzu: 18-26
+		case "z":
+			return JIHAI_OFFSET; // jihai: 27-33
+	}
 }
 
 /**
@@ -115,27 +118,29 @@ function getSuitOffset(suit: Suit): number {
  * @returns Parsed number (1-9 for number suits, 1-7 for jihai)
  */
 function validateAndParseHaiNumber(digit: string, suit: Suit): number {
-  const num = parseInt(digit, 10);
+	const num = parseInt(digit, 10);
 
-  if (isNaN(num) || num < 0 || num > 9) {
-    throw new Error(`Invalid hai number: ${digit}`);
-  }
+	if (Number.isNaN(num) || num < 0 || num > 9) {
+		throw new Error(`Invalid hai number: ${digit}`);
+	}
 
-  // Handle Red Five (0) -> treat as 5
-  if (num === 0) {
-    // Red Five is not valid for Jihai
-    if (suit === 'z') {
-      throw new Error(`Invalid hai number: ${digit} (Red Five not allowed for Jihai)`);
-    }
-    return 5;
-  }
+	// Handle Red Five (0) -> treat as 5
+	if (num === 0) {
+		// Red Five is not valid for Jihai
+		if (suit === "z") {
+			throw new Error(
+				`Invalid hai number: ${digit} (Red Five not allowed for Jihai)`,
+			);
+		}
+		return 5;
+	}
 
-  // Validate number range for jihai (z)
-  if (suit === 'z' && num > 7) {
-    throw new Error(`Invalid hai number: ${digit}`);
-  }
+	// Validate number range for jihai (z)
+	if (suit === "z" && num > 7) {
+		throw new Error(`Invalid hai number: ${digit}`);
+	}
 
-  return num;
+	return num;
 }
 
 /**
@@ -144,23 +149,29 @@ function validateAndParseHaiNumber(digit: string, suit: Suit): number {
  * @param suit - Suit character
  * @param counts - Counts array to update
  */
-function processHaiNumbers(numbers: string, suit: Suit, counts: number[]): void {
-  const offset = getSuitOffset(suit);
+function processHaiNumbers(
+	numbers: string,
+	suit: Suit,
+	counts: number[],
+): void {
+	const offset = getSuitOffset(suit);
 
-  for (const digit of numbers) {
-    const num = validateAndParseHaiNumber(digit, suit);
-    const haiKindId = offset + (num - 1);
+	for (const digit of numbers) {
+		const num = validateAndParseHaiNumber(digit, suit);
+		const haiKindId = offset + (num - 1);
 
-    if (haiKindId < 0 || haiKindId > 33) {
-      throw new Error(`Invalid hai kind ID: ${haiKindId}`);
-    }
+		if (haiKindId < 0 || haiKindId > 33) {
+			throw new Error(`Invalid hai kind ID: ${haiKindId}`);
+		}
 
-    counts[haiKindId]++;
+		counts[haiKindId]++;
 
-    if (counts[haiKindId] > 4) {
-      throw new Error(`Too many hai of kind ${haiKindId}: ${counts[haiKindId]}`);
-    }
-  }
+		if (counts[haiKindId] > 4) {
+			throw new Error(
+				`Too many hai of kind ${haiKindId}: ${counts[haiKindId]}`,
+			);
+		}
+	}
 }
 
 /**
@@ -173,12 +184,12 @@ function processHaiNumbers(numbers: string, suit: Suit, counts: number[]): void 
  * isMpszString("123m") // false (only 3 hai)
  */
 export function isMpszString(str: string): str is MpszString {
-  try {
-    mpszStringToHaiCounts(str);
-    return true;
-  } catch {
-    return false;
-  }
+	try {
+		mpszStringToHaiCounts(str);
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 /**
@@ -194,29 +205,29 @@ export function isMpszString(str: string): str is MpszString {
  * // indices 12,13,14 (pinzu 4,5,6) have count 1, etc.
  */
 export function mpszStringToHaiCounts(mpsz: MpszString): HaiCounts {
-  const counts: number[] = new Array(34).fill(0);
-  let currentNumbers = '';
+	const counts: number[] = new Array(34).fill(0);
+	let currentNumbers = "";
 
-  for (const char of mpsz) {
-    if (isSuit(char)) {
-      processHaiNumbers(currentNumbers, char, counts);
-      currentNumbers = '';
-    } else if (char >= '0' && char <= '9') {
-      currentNumbers += char;
-    } else {
-      throw new Error(`Invalid character in MPSZ string: ${char}`);
-    }
-  }
+	for (const char of mpsz) {
+		if (isSuit(char)) {
+			processHaiNumbers(currentNumbers, char, counts);
+			currentNumbers = "";
+		} else if (char >= "0" && char <= "9") {
+			currentNumbers += char;
+		} else {
+			throw new Error(`Invalid character in MPSZ string: ${char}`);
+		}
+	}
 
-  if (currentNumbers.length > 0) {
-    throw new Error('MPSZ string must end with a suit letter (m/p/s/z)');
-  }
+	if (currentNumbers.length > 0) {
+		throw new Error("MPSZ string must end with a suit letter (m/p/s/z)");
+	}
 
-  // Validate size (must be valid Agari/Tenpai related count essentially, but for flexible testing let's allow any non-empty)
-  const total = counts.reduce((sum, count) => sum + count, 0);
-  if (total === 0) {
-    throw new Error(`Invalid MPSZ string size: ${total} hai`);
-  }
+	// Validate size (must be valid Agari/Tenpai related count essentially, but for flexible testing let's allow any non-empty)
+	const total = counts.reduce((sum, count) => sum + count, 0);
+	if (total === 0) {
+		throw new Error(`Invalid MPSZ string size: ${total} hai`);
+	}
 
-  return counts as HaiCounts;
+	return counts as HaiCounts;
 }

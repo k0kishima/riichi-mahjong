@@ -1,177 +1,172 @@
-
-
-import { HaiKindId } from './hai';
+import type { HaiKindId } from "./hai";
 
 /**
  * Configuration for hand calculation
  */
 export interface HandConfig {
-    isTsumo: boolean;
-    isRiichi: boolean;
-    isIppatsu: boolean;
-    isRinshan: boolean;
-    isChankan: boolean;
-    isHaitei: boolean;
-    isHoutei: boolean;
-    isDoubleRiichi: boolean;
-    isTenhou: boolean;
-    isChiihou: boolean;
+	isTsumo: boolean;
+	isRiichi: boolean;
+	isIppatsu: boolean;
+	isRinshan: boolean;
+	isChankan: boolean;
+	isHaitei: boolean;
+	isHoutei: boolean;
+	isDoubleRiichi: boolean;
+	isTenhou: boolean;
+	isChiihou: boolean;
 
-    // Wind settings
-    /** 27: East, 28: South, 29: West, 30: North */
-    bakaze: number;
-    /** 27: East, 28: South, 29: West, 30: North */
-    jikaze: number;
+	// Wind settings
+	/** 27: East, 28: South, 29: West, 30: North */
+	bakaze: number;
+	/** 27: East, 28: South, 29: West, 30: North */
+	jikaze: number;
 
-    // Dora
-    /** Indices of dora tiles */
-    doraTiles: number[];
-    /** Indices of ura dora tiles */
-    uraDoraTiles: number[];
+	// Dora
+	/** Indices of dora tiles */
+	doraTiles: number[];
+	/** Indices of ura dora tiles */
+	uraDoraTiles: number[];
 }
-
-
 
 /**
  * Yaku Names
  * Defined as a const object for type safety and autocompletion.
  */
 export const YakuName = {
-    // Standard Yaku
-    Tanyao: 'Tanyao',
-    Pinfu: 'Pinfu',
-    Riichi: 'Riichi',
-    MenzenTsumo: 'MenzenTsumo',
-    Ippatsu: 'Ippatsu',
+	// Standard Yaku
+	Tanyao: "Tanyao",
+	Pinfu: "Pinfu",
+	Riichi: "Riichi",
+	MenzenTsumo: "MenzenTsumo",
+	Ippatsu: "Ippatsu",
 
-    // Suit-based Yaku (染め手)
-    Honitsu: 'Honitsu',
-    Chinitsu: 'Chinitsu',
+	// Suit-based Yaku (染め手)
+	Honitsu: "Honitsu",
+	Chinitsu: "Chinitsu",
 
-    // Yakuhai variations
-    Yakuhai: 'Yakuhai', // Generic
-    Haku: 'Haku',
-    Hatsu: 'Hatsu',
-    Chun: 'Chun',
-    Bakaze: 'Bakaze',
-    Jikaze: 'Jikaze',
+	// Yakuhai variations
+	Yakuhai: "Yakuhai", // Generic
+	Haku: "Haku",
+	Hatsu: "Hatsu",
+	Chun: "Chun",
+	Bakaze: "Bakaze",
+	Jikaze: "Jikaze",
 
-    // Sequence/Triplet Yaku
-    Iipeiko: 'Iipeiko',
-    Ryanpeiko: 'Ryanpeiko',
-    SanshokuDoujun: 'SanshokuDoujun',
-    Ittsu: 'Ittsu',
-    Toitoi: 'Toitoi',
-    Sanankou: 'Sanankou',
-    Sankantsu: 'Sankantsu',
-    SanshokuDoukou: 'SanshokuDoukou',
+	// Sequence/Triplet Yaku
+	Iipeiko: "Iipeiko",
+	Ryanpeiko: "Ryanpeiko",
+	SanshokuDoujun: "SanshokuDoujun",
+	Ittsu: "Ittsu",
+	Toitoi: "Toitoi",
+	Sanankou: "Sanankou",
+	Sankantsu: "Sankantsu",
+	SanshokuDoukou: "SanshokuDoukou",
 
-    // Terminal/Honor Yaku
-    Chanta: 'Chanta',
-    Junchan: 'Junchan',
-    Honroto: 'Honroto',
-    Shosangen: 'Shosangen',
+	// Terminal/Honor Yaku
+	Chanta: "Chanta",
+	Junchan: "Junchan",
+	Honroto: "Honroto",
+	Shosangen: "Shosangen",
 
-    // Yakuman
-    Suuankou: 'Suuankou',
-    Daisangen: 'Daisangen',
-    Shousuushi: 'Shousuushi',
-    Daisuushi: 'Daisuushi',
-    Tsuiso: 'Tsuiso',
-    Chinroto: 'Chinroto',
-    Ryuiso: 'Ryuiso',
-    ChuurenPoutou: 'ChuurenPoutou',
-    Suukantsu: 'Suukantsu',
-    Tenhou: 'Tenhou',
-    Chiihou: 'Chiihou',
+	// Yakuman
+	Suuankou: "Suuankou",
+	Daisangen: "Daisangen",
+	Shousuushi: "Shousuushi",
+	Daisuushi: "Daisuushi",
+	Tsuiso: "Tsuiso",
+	Chinroto: "Chinroto",
+	Ryuiso: "Ryuiso",
+	ChuurenPoutou: "ChuurenPoutou",
+	Suukantsu: "Suukantsu",
+	Tenhou: "Tenhou",
+	Chiihou: "Chiihou",
 
-    // Others
-    Chiitoitsu: 'Chiitoitsu',
-    KokushiMusou: 'KokushiMusou',
+	// Others
+	Chiitoitsu: "Chiitoitsu",
+	KokushiMusou: "KokushiMusou",
 } as const;
 
-export type YakuName = typeof YakuName[keyof typeof YakuName];
+export type YakuName = (typeof YakuName)[keyof typeof YakuName];
 
 /**
  * Represents a Yaku (Winning condition)
  */
 export interface Yaku {
-    name: YakuName;
-    hanOpen: number;
-    hanClosed: number;
-    isYakuman: boolean;
+	name: YakuName;
+	hanOpen: number;
+	hanClosed: number;
+	isYakuman: boolean;
 }
 
 /**
  * Result of hand calculation
  */
 export interface HandResponse {
-    cost: {
-        main: number;
-        /** Payment from others for tsumo (dealer/non-dealer split) */
-        additional?: number;
-        total: number;
-    } | null;
-    han: number;
-    fu: number;
-    yaku: Yaku[];
-    error: string | null;
-    fuDetails: { reason: string; fu: number }[];
-    /** The structure chosen for this result (useful for score calculation) */
-    structure?: HandStructure;
+	cost: {
+		main: number;
+		/** Payment from others for tsumo (dealer/non-dealer split) */
+		additional?: number;
+		total: number;
+	} | null;
+	han: number;
+	fu: number;
+	yaku: Yaku[];
+	error: string | null;
+	fuDetails: { reason: string; fu: number }[];
+	/** The structure chosen for this result (useful for score calculation) */
+	structure?: HandStructure;
 }
 
 /**
  * Result of Agari Check (Check if hand is checking)
  */
 export interface AgariResult {
-    isAgari: boolean;
-    yaku: YakuName[];
-    han: number;
-    error?: string;
-    structure?: HandStructure;
+	isAgari: boolean;
+	yaku: YakuName[];
+	han: number;
+	error?: string;
+	structure?: HandStructure;
 }
-
 
 /**
  * Mentsu Types
  */
 export const MentsuType = {
-    /** Sequence (Shuntsu / 順子) e.g., 1-2-3 */
-    Shuntsu: 'shuntsu',
-    /** Triplet (Koutsu / 刻子) e.g., 1-1-1 */
-    Koutsu: 'koutsu',
-    /** Quad (Kantsu / 槓子) e.g., 1-1-1-1 */
-    Kantsu: 'kantsu',
-    /** Pair (Toitsu / 対子) - Used for Chiitoitsu */
-    Toitsu: 'toitsu',
-    /** Kokushi elements (国士無双) - Used for Kokushi Musou */
-    Kokushi: 'kokushi',
+	/** Sequence (Shuntsu / 順子) e.g., 1-2-3 */
+	Shuntsu: "shuntsu",
+	/** Triplet (Koutsu / 刻子) e.g., 1-1-1 */
+	Koutsu: "koutsu",
+	/** Quad (Kantsu / 槓子) e.g., 1-1-1-1 */
+	Kantsu: "kantsu",
+	/** Pair (Toitsu / 対子) - Used for Chiitoitsu */
+	Toitsu: "toitsu",
+	/** Kokushi elements (国士無双) - Used for Kokushi Musou */
+	Kokushi: "kokushi",
 } as const;
 
-export type MentsuType = typeof MentsuType[keyof typeof MentsuType];
+export type MentsuType = (typeof MentsuType)[keyof typeof MentsuType];
 
 /**
  * Mentsu (面子) - A set of 3 or 4 tiles.
  */
 export interface Mentsu {
-    type: MentsuType;
-    /** The tiles forming the meld (HaiKindId) */
-    tiles: HaiKindId[];
-    /** 
-     * Whether the meld is open/exposed (Naki / 鳴き).
-     * - true: Open/Exposed (Chi, Pon, Min-Kan)
-     * - false: Closed/Concealed (An-Kou, An-Kan)
-     */
-    isOpen: boolean;
+	type: MentsuType;
+	/** The tiles forming the meld (HaiKindId) */
+	tiles: HaiKindId[];
+	/**
+	 * Whether the meld is open/exposed (Naki / 鳴き).
+	 * - true: Open/Exposed (Chi, Pon, Min-Kan)
+	 * - false: Closed/Concealed (An-Kou, An-Kan)
+	 */
+	isOpen: boolean;
 }
 
 /**
  * Head (雀頭) - A pair of tiles (Toitsu / 対子).
  */
 export interface Head {
-    /** [tile, tile] */
-    tiles: HaiKindId[];
+	/** [tile, tile] */
+	tiles: HaiKindId[];
 }
 
 /**
@@ -183,12 +178,12 @@ export type Block = Mentsu | Head;
  * Represents a decomposed hand structure (4 mentsu + 1 head, or chitoitsu/kokushi)
  */
 export interface HandStructure {
-    /** Should be 4 for standard hand */
-    mentsu: Mentsu[];
-    /** should be 1 pair */
-    head: Head;
-    /** The waiting tile(s) indices - conceptually, usually just the win tile */
-    wait: HaiKindId[];
-    /** The tile that completed the hand */
-    winTile: HaiKindId;
+	/** Should be 4 for standard hand */
+	mentsu: Mentsu[];
+	/** should be 1 pair */
+	head: Head;
+	/** The waiting tile(s) indices - conceptually, usually just the win tile */
+	wait: HaiKindId[];
+	/** The tile that completed the hand */
+	winTile: HaiKindId;
 }

@@ -17,22 +17,22 @@
 /**
  * Suit character for manzu/characters (萬子).
  */
-export type ManzuSuit = 'm';
+export type ManzuSuit = "m";
 
 /**
  * Suit character for pinzu/dots (筒子).
  */
-export type PinzuSuit = 'p';
+export type PinzuSuit = "p";
 
 /**
  * Suit character for souzu/bamboo (索子).
  */
-export type SouzuSuit = 's';
+export type SouzuSuit = "s";
 
 /**
  * Suit character for jihai/honors (字牌).
  */
-export type JihaiSuit = 'z';
+export type JihaiSuit = "z";
 
 /**
  * All valid suit characters

@@ -1,12 +1,12 @@
-import { HaiCounts, HaiKindId } from '@/types/hai';
-import { HandConfig, YakuName, Mentsu } from '@/types/yaku';
-import { GameRules } from '@/types/game';
-import { decomposeHand } from './structure';
-import { getAppliableRules } from '../yaku/rules';
+import type { GameRules } from "@/types/game";
+import type { HaiCounts, HaiKindId } from "@/types/hai";
+import type { HandConfig, Mentsu, YakuName } from "@/types/yaku";
+import { getAppliableRules } from "../yaku/rules";
+import { decomposeHand } from "./structure";
 
 /**
  * Detects Yaku from the hand.
- * 
+ *
  * @param haiCounts - The hand to evaluate (must be 14 tiles total).
  * @param winTile - The tile that completed the hand.
  * @param config - Configuration (rules, dora, wind, etc.).
@@ -16,60 +16,60 @@ import { getAppliableRules } from '../yaku/rules';
  * @throws Error if hand structure is invalid (cannot be decomposed).
  */
 export function detectAgari(
-    haiCounts: HaiCounts,
-    winTile: HaiKindId,
-    config: HandConfig,
-    gameRules: GameRules,
-    melds: Mentsu[] = []
+	haiCounts: HaiCounts,
+	winTile: HaiKindId,
+	config: HandConfig,
+	gameRules: GameRules,
+	melds: Mentsu[] = [],
 ): YakuName[] {
-    // 1. Decompose hand into all possible structures
-    const structures = decomposeHand(haiCounts, winTile, melds);
+	// 1. Decompose hand into all possible structures
+	const structures = decomposeHand(haiCounts, winTile, melds);
 
-    if (structures.length === 0) {
-        throw new Error('Invalid hand structure (not 4 mentsu + 1 head)');
-    }
+	if (structures.length === 0) {
+		throw new Error("Invalid hand structure (not 4 mentsu + 1 head)");
+	}
 
-    let bestYaku: YakuName[] = [];
-    let maxHan = 0;
+	let bestYaku: YakuName[] = [];
+	let maxHan = 0;
 
-    // Prepare active rules
-    const activeRules = getAppliableRules(config);
+	// Prepare active rules
+	const activeRules = getAppliableRules(config);
 
-    // 2. Evaluate each structure
-    for (const structure of structures) {
-        const currentYaku: YakuName[] = [];
-        let currentHan = 0;
+	// 2. Evaluate each structure
+	for (const structure of structures) {
+		const currentYaku: YakuName[] = [];
+		let currentHan = 0;
 
-        // Check all rules
-        for (const rule of activeRules) {
-            if (rule.check(structure, config, gameRules)) {
-                // Determine Han based on Menzen status
-                const isMenzen = !structure.mentsu.some(m => m.isOpen);
-                const ruleHan = isMenzen ? rule.hanClosed : rule.hanOpen;
+		// Check all rules
+		for (const rule of activeRules) {
+			if (rule.check(structure, config, gameRules)) {
+				// Determine Han based on Menzen status
+				const isMenzen = !structure.mentsu.some((m) => m.isOpen);
+				const ruleHan = isMenzen ? rule.hanClosed : rule.hanOpen;
 
-                if (ruleHan > 0 || rule.isYakuman) {
-                    currentYaku.push(rule.name);
-                    currentHan += ruleHan;
-                }
-            }
-        }
+				if (ruleHan > 0 || rule.isYakuman) {
+					currentYaku.push(rule.name);
+					currentHan += ruleHan;
+				}
+			}
+		}
 
-        // If valid Yaku found, compare with best
-        if (currentHan > 0) {
-            if (currentHan > maxHan) {
-                maxHan = currentHan;
-                bestYaku = currentYaku;
-            } else if (currentHan === maxHan) {
-                // Determine tie-breaker?
-                // For now, if Han is equal, either is fine as the score comes from Han/Fu.
-                // We might want to prefer higher Fu, but Fu calculation is outside here.
-                // So we just keep the first one or overwrite?
-                // Standard: usually maximizing Han is enough for Yaku list.
-                // If Han is equal (e.g. Pin-Tanyao vs ...), usually it means same interpretation or structurally ambiguous but score-equivalent.
-                // For simplified logic, strictly max Han is enough.
-            }
-        }
-    }
+		// If valid Yaku found, compare with best
+		if (currentHan > 0) {
+			if (currentHan > maxHan) {
+				maxHan = currentHan;
+				bestYaku = currentYaku;
+			} else if (currentHan === maxHan) {
+				// Determine tie-breaker?
+				// For now, if Han is equal, either is fine as the score comes from Han/Fu.
+				// We might want to prefer higher Fu, but Fu calculation is outside here.
+				// So we just keep the first one or overwrite?
+				// Standard: usually maximizing Han is enough for Yaku list.
+				// If Han is equal (e.g. Pin-Tanyao vs ...), usually it means same interpretation or structurally ambiguous but score-equivalent.
+				// For simplified logic, strictly max Han is enough.
+			}
+		}
+	}
 
-    return bestYaku;
+	return bestYaku;
 }
