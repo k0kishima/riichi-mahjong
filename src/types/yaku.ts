@@ -56,6 +56,35 @@ export const YakuName = {
     Bakaze: 'Bakaze',
     Jikaze: 'Jikaze',
 
+    // Sequence/Triplet Yaku
+    Iipeiko: 'Iipeiko',
+    Ryanpeiko: 'Ryanpeiko',
+    SanshokuDoujun: 'SanshokuDoujun',
+    Ittsu: 'Ittsu',
+    Toitoi: 'Toitoi',
+    Sanankou: 'Sanankou',
+    Sankantsu: 'Sankantsu',
+    SanshokuDoukou: 'SanshokuDoukou',
+
+    // Terminal/Honor Yaku
+    Chanta: 'Chanta',
+    Junchan: 'Junchan',
+    Honroto: 'Honroto',
+    Shosangen: 'Shosangen',
+
+    // Yakuman
+    Suuankou: 'Suuankou',
+    Daisangen: 'Daisangen',
+    Shousuushi: 'Shousuushi',
+    Daisuushi: 'Daisuushi',
+    Tsuiso: 'Tsuiso',
+    Chinroto: 'Chinroto',
+    Ryuiso: 'Ryuiso',
+    ChuurenPoutou: 'ChuurenPoutou',
+    Suukantsu: 'Suukantsu',
+    Tenhou: 'Tenhou',
+    Chiihou: 'Chiihou',
+
     // Others
     Chiitoitsu: 'Chiitoitsu',
     KokushiMusou: 'KokushiMusou',

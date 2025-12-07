@@ -385,6 +385,248 @@ export const YakuRules = {
             return config.isRiichi && config.isIppatsu;
         }
     } as YakuRule,
+    /**
+     * Iipeiko (Twice the Same Shuntsu).
+     * (一盃口)
+     */
+    Iipeiko: {
+        name: YakuName.Iipeiko,
+        hanOpen: 0, // Menzen Only
+        hanClosed: 1,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            if (hand.mentsu.some(m => m.isOpen)) return false;
+
+            // Count identical shuntsu
+            const shuntsuList = hand.mentsu.filter(m => m.type === MentsuType.Shuntsu);
+            // Sort by tile index for easy comparison
+            const signatures = shuntsuList.map(m => m.tiles.join(','));
+
+            // Check for at least 1 pair
+            const counts: Record<string, number> = {};
+            for (const sig of signatures) {
+                counts[sig] = (counts[sig] || 0) + 1;
+            }
+
+            let pairCount = 0;
+            let hasQuad = false;
+            for (const c of Object.values(counts)) {
+                if (c >= 2) pairCount++;
+                if (c === 4) hasQuad = true;
+            }
+
+            // Ryanpeiko check: If 2 pairs or 1 quad (4 same is 2 pairs), it's Ryanpeiko.
+            // Iipeiko is valid ONLY if Ryanpeiko is NOT valid (to avoid double counting if summing logic is naive).
+            // However, typically Iipeiko is returned, and Ryanpeiko (3 Han) replaces it if valid.
+            // If we strictly want to implement Iipeiko as independent, we return true.
+            // But detectAgari logic sums them?
+            // "Ryanpeiko includes Iipeiko" -> Ryanpeiko (3 Han).
+            // If we satisfy Ryanpeiko, we satisfy Iipeiko.
+            // If we return both, we get 1+3=4 Han. Incorrect.
+            // So Iipeiko must specifically exclude Ryanpeiko condition.
+
+            const isRyanpeiko = pairCount === 2 || hasQuad;
+            return pairCount >= 1 && !isRyanpeiko;
+        }
+    } as YakuRule,
+
+    /**
+     * Ryanpeiko (Two Twice the Same Shuntsu).
+     * (二盃口)
+     */
+    Ryanpeiko: {
+        name: YakuName.Ryanpeiko,
+        hanOpen: 0, // Menzen Only
+        hanClosed: 3,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            if (hand.mentsu.some(m => m.isOpen)) return false;
+
+            const shuntsuList = hand.mentsu.filter(m => m.type === MentsuType.Shuntsu);
+            const signatures = shuntsuList.map(m => m.tiles.join(','));
+            const counts: Record<string, number> = {};
+            for (const sig of signatures) {
+                counts[sig] = (counts[sig] || 0) + 1;
+            }
+
+            let pairCount = 0;
+            let hasQuad = false;
+            for (const c of Object.values(counts)) {
+                if (c >= 2) pairCount++;
+                if (c === 4) hasQuad = true;
+            }
+
+            return pairCount === 2 || hasQuad;
+        }
+    } as YakuRule,
+
+    /**
+     * Sanshoku Doujun (Three Color Straight).
+     * (三色同順)
+     */
+    SanshokuDoujun: {
+        name: YakuName.SanshokuDoujun,
+        hanOpen: 1,
+        hanClosed: 2,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            const shuntsuList = hand.mentsu.filter(m => m.type === MentsuType.Shuntsu);
+            if (shuntsuList.length < 3) return false;
+
+            // We need 3 shuntsu with same number (x, x+9, x+18)
+            // Map shuntsu to "Number" (0..8).
+            const suitMap: Record<number, Set<number>> = {}; // Number -> Set of Suits (0,1,2)
+
+            for (const m of shuntsuList) {
+                const first = m.tiles[0]; // Assuming sorted [x, x+1, x+2]
+                const num = first % 9;
+                const suit = Math.floor(first / 9); // 0:man, 1:pin, 2:sou
+
+                if (!suitMap[num]) suitMap[num] = new Set();
+                suitMap[num].add(suit);
+            }
+
+            // Check if any number has all 3 suits
+            return Object.values(suitMap).some(suits => suits.has(0) && suits.has(1) && suits.has(2));
+        }
+    } as YakuRule,
+
+    /**
+     * Ittsu (Pure Straight).
+     * (一気通貫)
+     */
+    Ittsu: {
+        name: YakuName.Ittsu,
+        hanOpen: 1,
+        hanClosed: 2,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            const shuntsuList = hand.mentsu.filter(m => m.type === MentsuType.Shuntsu);
+            if (shuntsuList.length < 3) return false;
+
+            // Need 123, 456, 789 in SAME suit.
+            // 123 (num 0), 456 (num 3), 789 (num 6).
+
+            const suitGroups: Record<number, Set<number>> = { 0: new Set(), 1: new Set(), 2: new Set() };
+
+            for (const m of shuntsuList) {
+                const first = m.tiles[0];
+                const num = first % 9;
+                const suit = Math.floor(first / 9);
+                if (suit >= 0 && suit <= 2) {
+                    suitGroups[suit].add(num);
+                }
+            }
+
+            return Object.values(suitGroups).some(nums => nums.has(0) && nums.has(3) && nums.has(6));
+        }
+    } as YakuRule,
+
+    /**
+     * Toitoi (All Pon).
+     * (対々和)
+     */
+    Toitoi: {
+        name: YakuName.Toitoi,
+        hanOpen: 2,
+        hanClosed: 2,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            // Must have 4 Koutsu/Kantsu
+            return hand.mentsu.every(m => m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu);
+        }
+    } as YakuRule,
+
+    /**
+     * Sanankou (Three Concealed Triplets).
+     * (三暗刻)
+     */
+    Sanankou: {
+        name: YakuName.Sanankou,
+        hanOpen: 2,
+        hanClosed: 2,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            let ankouCount = 0;
+            const winningTile = hand.winTile;
+
+            // Count closed triplets
+            const closedTriplets = hand.mentsu.filter(m =>
+                (m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) && !m.isOpen
+            );
+            ankouCount = closedTriplets.length;
+
+            if (!config.isTsumo) {
+                // Ron: The winning tile's group is treated as Open.
+                // We must determine if the successful group was one of the triplets.
+                // If the winning tile can be attributed to a Shuntsu or the Head, 
+                // we assume that was the win path to maximize Ankou count (High Score Principle).
+
+                const tripletsWithWinTile = closedTriplets.filter(m => m.tiles.includes(winningTile));
+
+                if (tripletsWithWinTile.length > 0) {
+                    // Check if winTile exists in other struct components
+                    const inShuntsu = hand.mentsu.some(m =>
+                        m.type === MentsuType.Shuntsu && m.tiles.includes(winningTile)
+                    );
+                    const inHead = hand.head.tiles.includes(winningTile); // Tanki wait
+
+                    // If NOT in Shuntsu AND NOT in Head, it MUST be in a triplet.
+                    // We must sacrifice one triplet.
+                    if (!inShuntsu && !inHead) {
+                        ankouCount--;
+                    }
+                }
+            }
+
+            return ankouCount >= 3;
+        }
+    } as YakuRule,
+
+    /**
+     * Sankantsu (Three Quads).
+     * (三槓子)
+     */
+    Sankantsu: {
+        name: YakuName.Sankantsu,
+        hanOpen: 2,
+        hanClosed: 2,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            const kantsuCount = hand.mentsu.filter(m => m.type === MentsuType.Kantsu).length;
+            return kantsuCount >= 3;
+        }
+    } as YakuRule,
+
+    /**
+     * Sanshoku Doukou (Three Color Triplets).
+     * (三色同刻)
+     */
+    SanshokuDoukou: {
+        name: YakuName.SanshokuDoukou,
+        hanOpen: 2,
+        hanClosed: 2,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            const koutsuList = hand.mentsu.filter(m => m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu);
+            if (koutsuList.length < 3) return false;
+
+            const suitMap: Record<number, Set<number>> = {};
+
+            for (const m of koutsuList) {
+                const first = m.tiles[0];
+                const num = first % 9;
+                const suit = Math.floor(first / 9);
+
+                if (suit >= 0 && suit <= 2) { // Ignore Honors (27+)
+                    if (!suitMap[num]) suitMap[num] = new Set();
+                    suitMap[num].add(suit);
+                }
+            }
+
+            return Object.values(suitMap).some(suits => suits.has(0) && suits.has(1) && suits.has(2));
+        }
+    } as YakuRule,
 };
 
 /**

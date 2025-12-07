@@ -28,9 +28,10 @@ const createGameRules = (): GameRules => ({
 });
 
 describe('detectAgari', () => {
-    test('Tanyao Hand (Simple)', () => {
+    test('Tanyao Hand (Simple) + Sanshoku', () => {
         // 234m 234p 234s 888s 66p (Win on 6p)
         // 888s is a triplet, so No Pinfu.
+        // 234m, 234p, 234s -> Sanshoku Doujun!
         const hand = mpszStringToHaiCounts('234m234p234s888s66p');
         const config = createConfig();
         const rules = createGameRules();
@@ -38,12 +39,12 @@ describe('detectAgari', () => {
         const yakuList = detectAgari(hand, 14, config, rules); // 14 is 6p
 
         expect(yakuList.length).toBeGreaterThan(0);
-        expect(yakuList.sort()).toEqual(['Tanyao']);
+        expect(yakuList.sort()).toEqual(['SanshokuDoujun', 'Tanyao']);
     });
 
-    test('Pinfu Hand (Simple)', () => {
+    test('Pinfu Hand (Simple) + Iipeiko', () => {
         // 123m 456p 789s 23m 99p. Win 1m (0).
-        // Contains Terminals (1m, 9s, 9p), so No Tanyao.
+        // 123m + 123m (from 23m+1m) -> Iipeiko!
         const hand = mpszStringToHaiCounts('123m456p789s23m99p1m'); // Added 1m to complete
         const config = createConfig();
         config.jikaze = 28; // South (Head is 9p, safe)
@@ -51,7 +52,7 @@ describe('detectAgari', () => {
 
         const yakuList = detectAgari(hand, 0, config, rules); // 0 is 1m
 
-        expect(yakuList.sort()).toEqual(['Pinfu']);
+        expect(yakuList.sort()).toEqual(['Iipeiko', 'Pinfu']);
     });
 
     test('Tanyao + Pinfu Hand', () => {
@@ -76,7 +77,9 @@ describe('detectAgari', () => {
     });
 
     test('No Yaku (Yaku Nashi)', () => {
-        const hand = mpszStringToHaiCounts('123m123p123s999m11z');
+        // Changed hand to avoid Sanshoku/Iipeiko
+        // 123m 456p 789s 999m 11z
+        const hand = mpszStringToHaiCounts('123m456p789s999m11z');
         const config = createConfig();
         config.jikaze = 28; // South
         config.bakaze = 28; // South
@@ -88,19 +91,19 @@ describe('detectAgari', () => {
         expect(yakuList).toHaveLength(0);
     });
 
-    test('Riichi Hand', () => {
-        // Riichi + Tanyao
+    test('Riichi Hand + Sanshoku', () => {
+        // Riichi + Tanyao + Sanshoku
         const hand = mpszStringToHaiCounts('234m234p234s66p888s');
         const config = createConfig();
         config.isRiichi = true;
         const rules = createGameRules();
 
         const yakuList = detectAgari(hand, 14, config, rules);
-        expect(yakuList.sort()).toEqual(['Riichi', 'Tanyao']);
+        expect(yakuList.sort()).toEqual(['Riichi', 'SanshokuDoujun', 'Tanyao']);
     });
 
-    test('Menzen Tsumo Hand', () => {
-        // Tsumo + Pinfu
+    test('Menzen Tsumo Hand + Iipeiko', () => {
+        // Tsumo + Pinfu + Iipeiko
         const hand = mpszStringToHaiCounts('123m456p789s23m99p1m');
         const config = createConfig();
         config.isTsumo = true;
@@ -108,11 +111,11 @@ describe('detectAgari', () => {
         const rules = createGameRules();
 
         const yakuList = detectAgari(hand, 0, config, rules); // Win on 1m
-        expect(yakuList.sort()).toEqual(['MenzenTsumo', 'Pinfu']);
+        expect(yakuList.sort()).toEqual(['Iipeiko', 'MenzenTsumo', 'Pinfu']);
     });
 
-    test('Riichi + Ippatsu + Tsumo Hand', () => {
-        // Riichi + Ippatsu + Tsumo + Tanyao
+    test('Riichi + Ippatsu + Tsumo Hand + Sanshoku', () => {
+        // Riichi + Ippatsu + Tsumo + Tanyao + Sanshoku
         const hand = mpszStringToHaiCounts('234m234p234s66p888s');
         const config = createConfig();
         config.isRiichi = true;
@@ -121,7 +124,7 @@ describe('detectAgari', () => {
         const rules = createGameRules();
 
         const yakuList = detectAgari(hand, 14, config, rules);
-        expect(yakuList.sort()).toEqual(['Ippatsu', 'MenzenTsumo', 'Riichi', 'Tanyao']);
+        expect(yakuList.sort()).toEqual(['Ippatsu', 'MenzenTsumo', 'Riichi', 'SanshokuDoujun', 'Tanyao']);
     });
 
     test('detects Chinitsu correctly', () => {
@@ -154,35 +157,77 @@ describe('detectAgari', () => {
         // Should NOT be Chinitsu anywhere
         expect(yakuList).not.toContain(YakuName.Chinitsu);
     });
-    test('detects Chiitoitsu correctly', () => {
-        // 11 22 33 m 44 55 66 p 77 s (14 tiles)
+    test('detects Sankantsu', () => {
+        // 3 Quads.
+        // Needs MentsuType.Kantsu. decomposeHand handles Kantsu if counts[i] >= 4?
+        // Current decomposeHand prioritizes (tries) Koutsu then Shuntsu.
+        // It does NOT automatically form Kantsu unless we add logic or pass fixed Kantsu.
+        // Ideally, for closed hand, we treat 4 tiles as Kantsu only if declared?
+        // "Concealed Kong" must be declared.
+        // For Agari detection on purely "counts", we usually treat 4 identical tiles as "3 + 1" or "2 + 2" or "Kantsu (if flag)".
+        // Since `decomposeHand` doesn't support "Guessing Kantsu" (it assumes Kantsu are passed as fixed melds or explicitly formed if logic changed).
+        // My `decomposeHand` tries Koutsu (3).
+        // If I pass `fixedMelds` with Kantsu, it should work.
+        // Let's assume the user has declared Ankan/Minkan.
+
         const config = createConfig();
         const rules = createGameRules();
-        const handStr = '112233m445566p77s';
+
+        const kantsu1: import('../src/types/yaku').Mentsu = { type: 'kantsu', tiles: [0, 0, 0, 0], isOpen: false };
+        const kantsu2: import('../src/types/yaku').Mentsu = { type: 'kantsu', tiles: [9, 9, 9, 9], isOpen: false };
+        const kantsu3: import('../src/types/yaku').Mentsu = { type: 'kantsu', tiles: [18, 18, 18, 18], isOpen: false };
+
+        // Hand: 1111m 1111p 1111s 22z (Head).
+        // Kantsu passed as fixed (though Ankan is "fixed" in structure).
+
+        // Remaining hand: 22z.
+        const handStr = '22z';
+        const counts = mpszStringToHaiCounts(handStr); // only 2 tiles left effectively?
+        // Wait, detectAgari expects full counts?
+        // "haiCounts" + "melds" -> decomposeHand combines them?
+        // decomposeHand(haiCounts, winTile, fixedMelds).
+        // Logic: finds head from counts...
+        // If fixedMelds has 3, need 1 more from counts.
+        // If I pass 22z in counts, it finds head 22z.
+        // Total mentsu = 3 (fixed) + 0 (found) = 3? Invalid.
+        // Need 4 mentsu.
+        // Hand: 3 Kantsu + 1 Shuntsu/Koutsu + Head.
+        // Let's add 1 Shuntsu [1,2,3]m.
+        // 123m 22z.
+
+        const counts2 = mpszStringToHaiCounts('123m22z');
+        const yakuList = detectAgari(counts2, 0, config, rules, [kantsu1, kantsu2, kantsu3]);
+
+        expect(yakuList).toContain(YakuName.Sankantsu);
+    });
+
+    test('detects Sanshoku Doukou', () => {
+        // 222m 222p 222s 888s 99p.
+        const handStr = '222m222p222s888s99p';
         const counts = mpszStringToHaiCounts(handStr);
-        const winTile = 6; // 7s (index 24? 18+6)
+        const config = createConfig();
+        const rules = createGameRules();
 
-        // 7s is 18+6 = 24.
-        // wait, mpszStringToHaiCounts inputs:
-        // 1-9m: 0-8
-        // 1-9p: 9-17
-        // 1-9s: 18-26
-        // 1-7z: 27-33
-        // 7s is 18 + 7 - 1 = 24.
+        const yakuList = detectAgari(counts, 0, config, rules);
+        expect(yakuList).toContain(YakuName.SanshokuDoukou);
+        expect(yakuList).toContain(YakuName.Toitoi); // All Pon implies Toitoi
+    });
 
-        const yakuList = detectAgari(counts, 24, config, rules);
+    test('detects Chiitoitsu correctly', () => {
+        // Use a hand that CANNOT be interpreted as Ryanpeiko
+        // 11 11 33 55 77 99 m 22 p
+        // This is 4 of 1m -> Chiitoitsu allows 4 of same if they are distinct pairs?
+        // Standard rule: 4 of same tile is NOT 2 pairs for Chiitoitsu.
+        // So use 11 33 55 77 99 m 22 44 p.
+        const config = createConfig();
+        const rules = createGameRules();
+        const handStr = '1133557799m2244p';
+        const counts = mpszStringToHaiCounts(handStr);
+        // Win tile 2p (index 10)
+
+        const yakuList = detectAgari(counts, 10, config, rules);
         expect(yakuList).toContain(YakuName.Chiitoitsu);
-        // It might also be Tanyao + Pinfu (implied Ryanpeiko logic if 223344 works, but here 11 22 33 includes terminals 1m, so No Tanyao, No Pinfu if 11 is pair?)
-        // 112233m -> 123m + 123m (Standard)
-        // 445566p -> 456p + 456p (Standard)
-        // 77s (Head)
-        // Agari 1: 123m, 123m, 456p, 456p, 77s(Head).
-        // Yaku: Iipeiko x 2? (Not implemented).
-        // Tanyao: No (1m is terminal).
-        // Pinfu: Yes (if closed and wait valid). Wait is 7s (pair wait -> No Pinfu).
-        // So Standard form has 0 Han (unless Iipeiko implemented).
-        // Chiitoitsu has 2 Han.
-        // Win: Chiitoitsu.
+        expect(yakuList).not.toContain(YakuName.Ryanpeiko);
     });
 
     test('detects Kokushi Musou correctly', () => {
@@ -198,4 +243,3 @@ describe('detectAgari', () => {
         expect(yakuList).toContain(YakuName.KokushiMusou);
     });
 });
-
