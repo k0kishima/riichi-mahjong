@@ -239,7 +239,102 @@ describe('detectAgari', () => {
         // Win tile 1m (0)
 
         const yakuList = detectAgari(counts, 0, config, rules);
-
         expect(yakuList).toContain(YakuName.KokushiMusou);
+    });
+
+    test('detects Chanta', () => {
+        // 123m 789p 123s 999s 11z.
+        // Terminal/Honor in every block. Contains sequence.
+        const handStr = '123m789p123s999s11z';
+        const counts = mpszStringToHaiCounts(handStr);
+        const config = createConfig();
+        const rules = createGameRules();
+
+        const yakuList = detectAgari(counts, 27, config, rules); // Win on 11z (index 27)
+        expect(yakuList).toContain(YakuName.Chanta);
+        expect(yakuList).not.toContain(YakuName.Junchan);
+    });
+
+    test('detects Junchan', () => {
+        // 123m 789p 123s 999s 11p. (No honors).
+        const handStr = '123m789p123s999s11p';
+        const counts = mpszStringToHaiCounts(handStr);
+        const config = createConfig();
+        const rules = createGameRules();
+
+        const yakuList = detectAgari(counts, 9, config, rules); // Win on 11p (index 9)
+        expect(yakuList).toContain(YakuName.Junchan);
+        expect(yakuList).not.toContain(YakuName.Chanta);
+    });
+
+    test('detects Honroto', () => {
+        // 111m 999p 111s 999s 11z.
+        // All Terminals/Honors. No Sequence.
+        // Toitoi (2) + Honroto (2) + Yakuhai (1) + ...
+        const handStr = '111m999p111s999s11z';
+        const counts = mpszStringToHaiCounts(handStr);
+        const config = createConfig();
+        const rules = createGameRules();
+
+        const yakuList = detectAgari(counts, 0, config, rules);
+        expect(yakuList).toContain(YakuName.Honroto);
+        expect(yakuList).toContain(YakuName.Toitoi);
+    });
+
+    test('detects Shosangen', () => {
+        // 555z 666z 77z 123m 456p.
+        // White+Green Triples. Red Pair.
+        const handStr = '123m456p555z666z77z';
+        const counts = mpszStringToHaiCounts(handStr);
+        const config = createConfig();
+        const rules = createGameRules();
+
+        const yakuList = detectAgari(counts, 0, config, rules);
+        expect(yakuList).toContain(YakuName.Shosangen);
+    });
+
+    test('detects Suuankou', () => {
+        // 111m 333m 555p 777s 99s. Closed. Tsumo.
+        const handStr = '111m333m555p777s99s';
+        const counts = mpszStringToHaiCounts(handStr);
+        const config = createConfig();
+        config.isTsumo = true;
+        const rules = createGameRules();
+
+        const yakuList = detectAgari(counts, 0, config, rules);
+        expect(yakuList).toContain(YakuName.Suuankou);
+    });
+
+    test('detects Daisangen', () => {
+        // 555z 666z 777z 123m 99p.
+        const handStr = '123m555z666z777z99p';
+        const counts = mpszStringToHaiCounts(handStr);
+        const config = createConfig();
+        const rules = createGameRules();
+
+        const yakuList = detectAgari(counts, 0, config, rules);
+        expect(yakuList).toContain(YakuName.Daisangen);
+    });
+
+    test('detects Tsuiso', () => {
+        // 111z 222z 333z 444z 55z.
+        const handStr = '111z222z333z444z55z';
+        const counts = mpszStringToHaiCounts(handStr);
+        const config = createConfig();
+        const rules = createGameRules();
+
+        const yakuList = detectAgari(counts, 0, config, rules);
+        expect(yakuList).toContain(YakuName.Tsuiso);
+    });
+
+    test('detects Chuuren Poutou', () => {
+        // 1112345678999m + 1m.
+        const handStr = '11112345678999m';
+        const counts = mpszStringToHaiCounts(handStr);
+        const config = createConfig();
+        const rules = createGameRules();
+
+        const yakuList = detectAgari(counts, 0, config, rules);
+        expect(yakuList).toContain(YakuName.ChuurenPoutou);
     });
 });

@@ -627,7 +627,351 @@ export const YakuRules = {
             return Object.values(suitMap).some(suits => suits.has(0) && suits.has(1) && suits.has(2));
         }
     } as YakuRule,
+    /**
+     * Chanta (Terminal or Honor in Each Group).
+     * (混全帯幺九)
+     */
+    Chanta: {
+        name: YakuName.Chanta,
+        hanOpen: 1,
+        hanClosed: 2,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            // Must contain at least one Shuntsu (otherwise it is Honroto)
+            const hasShuntsu = hand.mentsu.some(m => m.type === MentsuType.Shuntsu);
+            if (!hasShuntsu) return false;
+
+            // Check if every block has at least one Terminal or Honor
+            const allBlocks = [...hand.mentsu, hand.head];
+            const valid = allBlocks.every(block => {
+                // If Shuntsu: must contain 1 or 9 (1-2-3 or 7-8-9)
+                if ((block as any).type === MentsuType.Shuntsu) {
+                    return (block as any).tiles.some((t: number) => isTerminal(t)); // Honors can't be in Shuntsu
+                }
+                // If Head/Koutsu: must be Terminal or Honor
+                return isTerminalOrHonor(block.tiles[0]);
+            });
+
+            if (!valid) return false;
+
+            // Must NOT be Junchan (Pure Terminal). Chanta implies usually "Mixed".
+            // If Junchan check passes, usually we return Junchan instead.
+            // But here "Chanta" check just validates "Terminal OR Honor".
+            // If it has NO Honors, it is Junchan.
+            // If we implement exclusion STRICTLY:
+            const hasHonor = hand.mentsu.some(m => m.tiles.some(t => t >= 27)) || hand.head.tiles[0] >= 27;
+            return hasHonor;
+        }
+    } as YakuRule,
+
+    /**
+     * Junchan (Pure Terminal in Each Group).
+     * (純全帯幺九)
+     */
+    Junchan: {
+        name: YakuName.Junchan,
+        hanOpen: 2,
+        hanClosed: 3,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            // Must contain at least one Shuntsu (otherwise it is Chinroto)
+            const hasShuntsu = hand.mentsu.some(m => m.type === MentsuType.Shuntsu);
+            if (!hasShuntsu) return false;
+
+            const allBlocks = [...hand.mentsu, hand.head];
+            return allBlocks.every(block => {
+                if ((block as any).type === MentsuType.Shuntsu) {
+                    return (block as any).tiles.some((t: number) => isTerminal(t));
+                }
+                return isTerminal(block.tiles[0]); // Must be terminal (1,9)
+            });
+        }
+    } as YakuRule,
+
+    /**
+     * Honroto (All Terminals and Honors).
+     * (混老頭)
+     */
+    Honroto: {
+        name: YakuName.Honroto,
+        hanOpen: 2,
+        hanClosed: 2,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            // Must NOT contain Shuntsu (All Pon/Head)
+            // But Toitoi/Chiitoitsu structure required?
+            // "All Terminals/Honors" implies no 2-8.
+            // If 2-8 exist, false.
+            // If Shuntsu exists, it must be 1-2-3 or 7-8-9 -> contains 2 or 8.
+            // So Honroto = No Shuntsu + All tiles Terminal/Honor.
+
+            const allTiles = [...hand.mentsu.flatMap(m => m.tiles), ...hand.head.tiles];
+            return allTiles.every(t => isTerminalOrHonor(t));
+        }
+    } as YakuRule,
+
+    /**
+     * Shosangen (Little Three Dragons).
+     * (小三元)
+     */
+    Shosangen: {
+        name: YakuName.Shosangen,
+        hanOpen: 2,
+        hanClosed: 2,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            // 2 Dragon Koutsu + 1 Dragon Pair
+            const dragonKoutsu = hand.mentsu.filter(m =>
+                (m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) &&
+                m.tiles[0] >= 31 && m.tiles[0] <= 33
+            ).length;
+
+            const headTile = hand.head.tiles[0];
+            const dragonHead = (headTile >= 31 && headTile <= 33);
+
+            return dragonKoutsu === 2 && dragonHead;
+        }
+    } as YakuRule,
+
+    // --- YAKUMAN ---
+
+    /**
+     * Suuankou (Four Concealed Triplets).
+     * (四暗刻)
+     */
+    Suuankou: {
+        name: YakuName.Suuankou,
+        hanOpen: 0, // Closed only
+        hanClosed: 13,
+        isYakuman: true,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            // Must have 4 Closed Koutsu/Kantsu
+            // If Ron, one triplet might be open?
+            // Standard Rule:
+            // - Shanpon wait: Tsumo = Suuankou. Ron = Sanankou + Toitoi (Win tile opens the triplet).
+            // - Tanki wait: Win on Head. All 4 triplets are Ankou. Valid Suuankou (even Ron).
+
+            const closedTriplets = hand.mentsu.filter(m =>
+                (m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) && !m.isOpen
+            );
+
+            if (closedTriplets.length < 4) return false; // Normally max 4.
+
+            if (config.isTsumo) return true;
+
+            // If Ron, check if winTile is in any triplet.
+            // If winTile is in a triplet -> that triplet is Open -> 3 Ankou -> Fail.
+            // If winTile is NOT in any triplet (i.e. Tanki wait on Head), then -> Success.
+
+            // Note: If Tanki wait, winTile matches Head.
+            // Can winTile ALSO match a triplet? (e.g. 555 555 666 777 + 5? No).
+            // Assuming valid hand, if winTile completes Head, it strictly completes head.
+
+            const winTile = hand.winTile;
+            const tripletMatches = closedTriplets.some(m => m.tiles.includes(winTile));
+
+            // If any triplet matches winTile, it's treated as open on Ron.
+            return !tripletMatches;
+        }
+    } as YakuRule,
+
+    /**
+     * Daisangen (Big Three Dragons).
+     * (大三元)
+     */
+    Daisangen: {
+        name: YakuName.Daisangen,
+        hanOpen: 13,
+        hanClosed: 13,
+        isYakuman: true,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            const dragonKoutsu = hand.mentsu.filter(m =>
+                (m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) &&
+                m.tiles[0] >= 31 && m.tiles[0] <= 33
+            ).length;
+            return dragonKoutsu === 3;
+        }
+    } as YakuRule,
+
+    /**
+     * Shousuushi (Little Four Winds).
+     * (小四喜)
+     */
+    Shousuushi: {
+        name: YakuName.Shousuushi,
+        hanOpen: 13,
+        hanClosed: 13,
+        isYakuman: true,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            const windKoutsu = hand.mentsu.filter(m =>
+                (m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) &&
+                m.tiles[0] >= 27 && m.tiles[0] <= 30
+            ).length;
+            const headTile = hand.head.tiles[0];
+            const windHead = (headTile >= 27 && headTile <= 30);
+
+            return windKoutsu === 3 && windHead;
+        }
+    } as YakuRule,
+
+    /**
+     * Daisuushi (Big Four Winds).
+     * (大四喜)
+     */
+    Daisuushi: {
+        name: YakuName.Daisuushi,
+        hanOpen: 13, // Double Yakuman? Usually treated as Yakuman (or Double). We set 13 here, maybe logic handles double elsewhere or just returns Yakuman.
+        hanClosed: 13,
+        isYakuman: true,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            const windKoutsu = hand.mentsu.filter(m =>
+                (m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) &&
+                m.tiles[0] >= 27 && m.tiles[0] <= 30
+            ).length;
+            return windKoutsu === 4;
+        }
+    } as YakuRule,
+
+    /**
+     * Tsuiso (All Honors).
+     * (字一色)
+     */
+    Tsuiso: {
+        name: YakuName.Tsuiso,
+        hanOpen: 13,
+        hanClosed: 13,
+        isYakuman: true,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            const allTiles = [...hand.mentsu.flatMap(m => m.tiles), ...hand.head.tiles];
+            return allTiles.every(t => t >= 27);
+        }
+    } as YakuRule,
+
+    /**
+     * Chinroto (All Terminals).
+     * (清老頭)
+     */
+    Chinroto: {
+        name: YakuName.Chinroto,
+        hanOpen: 13,
+        hanClosed: 13,
+        isYakuman: true,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            const allTiles = [...hand.mentsu.flatMap(m => m.tiles), ...hand.head.tiles];
+            return allTiles.every(t => isTerminal(t));
+        }
+    } as YakuRule,
+
+    /**
+     * Ryuiso (All Green).
+     * (緑一色)
+     */
+    Ryuiso: {
+        name: YakuName.Ryuiso,
+        hanOpen: 13,
+        hanClosed: 13,
+        isYakuman: true,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            const allTiles = [...hand.mentsu.flatMap(m => m.tiles), ...hand.head.tiles];
+            // Green: 2,3,4,6,8 Sou + Hatsu (32).
+            // Sou offset 18.
+            // 2s=20, 3s=21, 4s=22, 6s=24, 8s=26.
+            const greenMap = new Set([20, 21, 22, 24, 26, 32]);
+            return allTiles.every(t => greenMap.has(t));
+        }
+    } as YakuRule,
+
+    /**
+     * Chuuren Poutou (Nine Gates).
+     * (九蓮宝燈)
+     */
+    ChuurenPoutou: {
+        name: YakuName.ChuurenPoutou,
+        hanOpen: 0, // Closed only
+        hanClosed: 13,
+        isYakuman: true,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            if (hand.mentsu.some(m => m.isOpen)) return false;
+            // Valid pattern: 1112345678999 in one suit + 1 extra in same suit.
+            // Must be Chinitsu (one suit).
+            const allTiles = [...hand.mentsu.flatMap(m => m.tiles), ...hand.head.tiles].sort((a, b) => a - b);
+            const first = allTiles[0];
+            const suit = Math.floor(first / 9); // 0,1,2
+            if (suit > 2) return false;
+
+            // Check if all same suit
+            if (!allTiles.every(t => Math.floor(t / 9) === suit)) return false;
+
+            // Normalize to 0-8
+            const nums = allTiles.map(t => t % 9);
+
+            // Expected counts for base 9-gates:
+            // 0: 3, 1..7: 1, 8: 3. Total 13.
+            // Plus 1 extra.
+            // We count frequencies.
+            const freqs = Array(9).fill(0);
+            for (const n of nums) freqs[n]++;
+
+            // Check requirements
+            if (freqs[0] < 3) return false;
+            if (freqs[8] < 3) return false;
+            for (let i = 1; i <= 7; i++) {
+                if (freqs[i] < 1) return false;
+            }
+            return true;
+        }
+    } as YakuRule,
+
+    /**
+     * Suukantsu (Four Quads).
+     * (四槓子)
+     */
+    Suukantsu: {
+        name: YakuName.Suukantsu,
+        hanOpen: 13,
+        hanClosed: 13,
+        isYakuman: true,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            const kantsuCount = hand.mentsu.filter(m => m.type === MentsuType.Kantsu).length;
+            return kantsuCount === 4;
+        }
+    } as YakuRule,
+
+    /**
+     * Tenhou (Heavenly Hand).
+     * (天和)
+     */
+    Tenhou: {
+        name: YakuName.Tenhou,
+        hanOpen: 13, // Technically Closed implicitly (Dealer Tsumo on turn 1)
+        hanClosed: 13,
+        isYakuman: true,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            return config.isTenhou;
+        }
+    } as YakuRule,
+
+    /**
+     * Chiihou (Earthly Hand).
+     * (地和)
+     */
+    Chiihou: {
+        name: YakuName.Chiihou,
+        hanOpen: 0, // Closed only (Non-dealer Tsumo on turn 1)
+        hanClosed: 13,
+        isYakuman: true,
+        check: (hand: HandStructure, config: HandConfig, rules: GameRules): boolean => {
+            return config.isChiihou;
+        }
+    } as YakuRule,
 };
+
+function isTerminal(tile: number): boolean {
+    // Terminals: 1 (0, 9, 18) or 9 (8, 17, 26)
+    if (tile >= 27) return false;
+    const n = tile % 9;
+    return n === 0 || n === 8;
+}
 
 /**
  * Helper to check if tile is Terminal or Honor
@@ -635,9 +979,7 @@ export const YakuRules = {
 function isTerminalOrHonor(tile: number): boolean {
     // Honors: 27-33
     if (tile >= 27) return true;
-    // Terminals: 1 (0, 9, 18) or 9 (8, 17, 26)
-    const num = tile % 9;
-    return num === 0 || num === 8;
+    return isTerminal(tile);
 }
 
 /**
