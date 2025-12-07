@@ -54,20 +54,7 @@ export function detectAgari(
             }
         }
 
-        // Dora (only if we have Yaku)
-        if (currentHan > 0) {
-            let doraCount = 0;
-            const allTiles = [...structure.mentsu.flatMap(m => m.tiles), ...structure.head.tiles];
 
-            for (const tile of allTiles) {
-                for (const dora of config.doraTiles) {
-                    if (tile === dora) doraCount++;
-                }
-            }
-            if (doraCount > 0) {
-                currentHan += doraCount;
-            }
-        }
 
         // If valid Yaku found, compare with best
         if (currentHan > 0) {
