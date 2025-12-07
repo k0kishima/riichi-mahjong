@@ -1,4 +1,4 @@
-import { detectAgari } from '../src/calculator';
+import { detectAgari } from '../src/agari';
 import { HandConfig, Mentsu, MentsuType } from '../src/types/yaku';
 import { GameRules } from '../src/types/game';
 import { mpszStringToHaiCounts } from '../src/hai';

@@ -44,6 +44,10 @@ export const YakuName = {
     MenzenTsumo: 'MenzenTsumo',
     Ippatsu: 'Ippatsu',
 
+    // Suit-based Yaku (染め手)
+    Honitsu: 'Honitsu',
+    Chinitsu: 'Chinitsu',
+
     // Yakuhai variations
     Yakuhai: 'Yakuhai', // Generic
     Haku: 'Haku',

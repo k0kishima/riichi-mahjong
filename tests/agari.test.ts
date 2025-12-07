@@ -1,5 +1,5 @@
-import { detectAgari } from '../src/calculator';
-import { HandConfig } from '../src/types/yaku';
+import { detectAgari } from '../src/agari';
+import { HandConfig, YakuName } from '../src/types/yaku';
 import { GameRules } from '../src/types/game';
 import { mpszStringToHaiCounts } from '../src/hai';
 import { describe, test, expect } from 'vitest';
@@ -137,5 +137,33 @@ describe('detectAgari', () => {
         const yakuList = detectAgari(hand, 14, config, rules);
 
         expect(yakuList.sort()).toEqual(['Ippatsu', 'MenzenTsumo', 'Riichi', 'Tanyao']);
+    });
+
+    test('detects Chinitsu correctly', () => {
+        // Chinitsu Manzu Closed
+        // 123m 456m 789m 222m 55m (14 tiles)
+        const config = createConfig();
+        config.isTsumo = true;
+        const rules = createGameRules();
+        let counts = mpszStringToHaiCounts('12345678922255m');
+        let winTile = 4; // 5m
+        let result = detectAgari(counts, winTile, config, rules);
+        expect(result).toContain(YakuName.Chinitsu);
+        expect(result).toContain(YakuName.MenzenTsumo); // Menzen Tsumo is also valid because config.isTsumo is true by default? No, default createConfig needs check.
+    });
+
+    test('detects Honitsu correctly', () => {
+        // Honitsu Manzu + Honors
+        const config = createConfig();
+        const rules = createGameRules();
+        let counts = mpszStringToHaiCounts('123m456m789m111z'); // 111z is East
+        // Need pair. 111z is 3. 123, 456, 789. 9 tiles. Need 14 total.
+        // 123m 456m 789m 111z 22z(pair) ?
+        counts = mpszStringToHaiCounts('123456789m11122z');
+        let winTile = 27; // 1z
+        let result = detectAgari(counts, winTile, config, rules);
+        expect(result).toContain(YakuName.Honitsu);
+        // Should NOT be Chinitsu
+        expect(result).not.toContain(YakuName.Chinitsu);
     });
 });

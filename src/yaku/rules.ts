@@ -244,6 +244,75 @@ export const YakuRules = {
     } as YakuRule,
 
     /**
+     * Chinitsu (Pure Triple Chow).
+     * (清一色)
+     */
+    Chinitsu: {
+        name: YakuName.Chinitsu,
+        hanOpen: 5,
+        hanClosed: 6,
+        isYakuman: false,
+        check: (hand: HandStructure, _config: HandConfig, _rules: GameRules): boolean => {
+            const allTiles = [...hand.mentsu.flatMap(m => m.tiles), ...hand.head.tiles];
+            if (allTiles.length === 0) return false;
+
+            const firstTile = allTiles[0];
+            let targetSuit: 'man' | 'pin' | 'sou';
+
+            if (firstTile >= 0 && firstTile <= 8) targetSuit = 'man';
+            else if (firstTile >= 9 && firstTile <= 17) targetSuit = 'pin';
+            else if (firstTile >= 18 && firstTile <= 26) targetSuit = 'sou';
+            else return false; // First tile is Honor, can't be Chinitsu
+
+            // Check all tiles are in the same suit range
+            for (const tile of allTiles) {
+                if (targetSuit === 'man' && (tile < 0 || tile > 8)) return false;
+                if (targetSuit === 'pin' && (tile < 9 || tile > 17)) return false;
+                if (targetSuit === 'sou' && (tile < 18 || tile > 26)) return false;
+            }
+            return true;
+        }
+    } as YakuRule,
+
+    /**
+     * Honitsu (Mixed Triple Chow).
+     * (混一色)
+     */
+    Honitsu: {
+        name: YakuName.Honitsu,
+        hanOpen: 2,
+        hanClosed: 3,
+        isYakuman: false,
+        check: (hand: HandStructure, _config: HandConfig, _rules: GameRules): boolean => {
+            const allTiles = [...hand.mentsu.flatMap(m => m.tiles), ...hand.head.tiles];
+            let hasHonor = false;
+            let hasSuit = false;
+            let targetSuit: 'man' | 'pin' | 'sou' | null = null;
+
+            for (const tile of allTiles) {
+                if (tile >= 27) {
+                    hasHonor = true;
+                } else {
+                    hasSuit = true;
+                    let currentSuit: 'man' | 'pin' | 'sou';
+                    if (tile >= 0 && tile <= 8) currentSuit = 'man';
+                    else if (tile >= 9 && tile <= 17) currentSuit = 'pin';
+                    else currentSuit = 'sou'; // 18-26
+
+                    if (targetSuit === null) {
+                        targetSuit = currentSuit;
+                    } else if (targetSuit !== currentSuit) {
+                        return false; // Mixed suits
+                    }
+                }
+            }
+
+            // Honitsu requires both suit tiles and honor tiles
+            return hasHonor && hasSuit;
+        }
+    } as YakuRule,
+
+    /**
      * Riichi (Reach).
      * (立直)
      */
