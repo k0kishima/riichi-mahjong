@@ -54,13 +54,19 @@ export function detectAgari(
             }
         }
 
-
-
         // If valid Yaku found, compare with best
         if (currentHan > 0) {
             if (currentHan > maxHan) {
                 maxHan = currentHan;
                 bestYaku = currentYaku;
+            } else if (currentHan === maxHan) {
+                // Determine tie-breaker?
+                // For now, if Han is equal, either is fine as the score comes from Han/Fu.
+                // We might want to prefer higher Fu, but Fu calculation is outside here.
+                // So we just keep the first one or overwrite?
+                // Standard: usually maximizing Han is enough for Yaku list.
+                // If Han is equal (e.g. Pin-Tanyao vs ...), usually it means same interpretation or structurally ambiguous but score-equivalent.
+                // For simplified logic, strictly max Han is enough.
             }
         }
     }

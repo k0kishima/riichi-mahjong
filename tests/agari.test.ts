@@ -55,26 +55,14 @@ describe('detectAgari', () => {
     });
 
     test('Tanyao + Pinfu Hand', () => {
-        // 234m 345p 456s 67s 88p. Win 5s (wait 5,8s).
-        // Let's construct: 234m 345p 456s 678s 88p.
-        // wait 5s for 456s? Or 67s wait for 5s, 8s.
-        // Let's use:
-        // 234m
-        // 345p
-        // 456s
-        // 67p (wait 5p, 8p) -> win 8p (16).
-        // 22s (Head)
-        // Hand: 234m 345p 456s 67p 22s. Win 8p.
-        // Result: 234m 345p 456s 678p 22s.
-        // No terminals/honors -> Tanyao.
-        // All Shuntsu, Valueless Head (2s), Ryanmen wait (67p -> 5,8). -> Pinfu.
-
+        // 234m 345p 456s 67p 22s. Win 8p.
         const hand = mpszStringToHaiCounts('234m345p456s67p22s8p'); // Added 8p
         const config = createConfig();
         const rules = createGameRules();
 
         const yakuList = detectAgari(hand, 16, config, rules); // 16 is 8p
 
+        // Should return Tanyao + Pinfu
         expect(yakuList.sort()).toEqual(['Pinfu', 'Tanyao']);
     });
 
@@ -84,7 +72,6 @@ describe('detectAgari', () => {
         const rules = createGameRules();
 
         const yakuList = detectAgari(hand, 31, config, rules);
-
         expect(yakuList.sort()).toEqual(['Haku']);
     });
 
@@ -97,6 +84,7 @@ describe('detectAgari', () => {
 
         const yakuList = detectAgari(hand, 0, config, rules);
 
+        // Should return empty list because no valid yaku found
         expect(yakuList).toHaveLength(0);
     });
 
@@ -108,7 +96,6 @@ describe('detectAgari', () => {
         const rules = createGameRules();
 
         const yakuList = detectAgari(hand, 14, config, rules);
-
         expect(yakuList.sort()).toEqual(['Riichi', 'Tanyao']);
     });
 
@@ -121,7 +108,6 @@ describe('detectAgari', () => {
         const rules = createGameRules();
 
         const yakuList = detectAgari(hand, 0, config, rules); // Win on 1m
-
         expect(yakuList.sort()).toEqual(['MenzenTsumo', 'Pinfu']);
     });
 
@@ -135,7 +121,6 @@ describe('detectAgari', () => {
         const rules = createGameRules();
 
         const yakuList = detectAgari(hand, 14, config, rules);
-
         expect(yakuList.sort()).toEqual(['Ippatsu', 'MenzenTsumo', 'Riichi', 'Tanyao']);
     });
 
@@ -147,23 +132,26 @@ describe('detectAgari', () => {
         const rules = createGameRules();
         let counts = mpszStringToHaiCounts('12345678922255m');
         let winTile = 4; // 5m
-        let result = detectAgari(counts, winTile, config, rules);
-        expect(result).toContain(YakuName.Chinitsu);
-        expect(result).toContain(YakuName.MenzenTsumo); // Menzen Tsumo is also valid because config.isTsumo is true by default? No, default createConfig needs check.
+
+        const yakuList = detectAgari(counts, winTile, config, rules);
+
+        // At least one interpretation should be Chinitsu + Tsumo
+        expect(yakuList).toContain(YakuName.Chinitsu);
+        expect(yakuList).toContain(YakuName.MenzenTsumo);
     });
 
     test('detects Honitsu correctly', () => {
         // Honitsu Manzu + Honors
         const config = createConfig();
         const rules = createGameRules();
-        let counts = mpszStringToHaiCounts('123m456m789m111z'); // 111z is East
-        // Need pair. 111z is 3. 123, 456, 789. 9 tiles. Need 14 total.
-        // 123m 456m 789m 111z 22z(pair) ?
-        counts = mpszStringToHaiCounts('123456789m11122z');
+        let counts = mpszStringToHaiCounts('123456789m11122z');
         let winTile = 27; // 1z
-        let result = detectAgari(counts, winTile, config, rules);
-        expect(result).toContain(YakuName.Honitsu);
-        // Should NOT be Chinitsu
-        expect(result).not.toContain(YakuName.Chinitsu);
+
+        const yakuList = detectAgari(counts, winTile, config, rules);
+
+        // Should detect Honitsu
+        expect(yakuList).toContain(YakuName.Honitsu);
+        // Should NOT be Chinitsu anywhere
+        expect(yakuList).not.toContain(YakuName.Chinitsu);
     });
 });
