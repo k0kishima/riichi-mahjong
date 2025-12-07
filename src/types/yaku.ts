@@ -36,6 +36,9 @@ export const YakuName = {
     // Standard Yaku
     Tanyao: 'Tanyao',
     Pinfu: 'Pinfu',
+    Riichi: 'Riichi',
+    MenzenTsumo: 'MenzenTsumo',
+    Ippatsu: 'Ippatsu',
 
     // Yakuhai variations
     Yakuhai: 'Yakuhai', // Generic

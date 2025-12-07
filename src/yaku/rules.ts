@@ -245,6 +245,52 @@ export const YakuRules = {
             return hasRyanmen;
         }
     } as YakuRule,
+
+    /**
+     * Riichi (Reach).
+     * (立直: メンゼンで聴牌し宣言する)
+     */
+    Riichi: {
+        name: YakuName.Riichi,
+        hanOpen: 0, // Menzen only
+        hanClosed: 1,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, _rules: GameRules): boolean => {
+            if (hand.mentsu.some(m => m.isOpen)) return false;
+            return config.isRiichi;
+        }
+    } as YakuRule,
+
+    /**
+     * Menzen Tsumo (Self Draw).
+     * (門前清自摸和: メンゼンでツモあがり)
+     */
+    MenzenTsumo: {
+        name: YakuName.MenzenTsumo,
+        hanOpen: 0, // Menzen only
+        hanClosed: 1,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, _rules: GameRules): boolean => {
+            if (hand.mentsu.some(m => m.isOpen)) return false;
+            return config.isTsumo;
+        }
+    } as YakuRule,
+
+    /**
+     * Ippatsu (One Shot).
+     * (一発: 立直後、一巡以内にあがる)
+     */
+    Ippatsu: {
+        name: YakuName.Ippatsu,
+        hanOpen: 0, // Menzen only (implied by Riichi)
+        hanClosed: 1,
+        isYakuman: false,
+        check: (hand: HandStructure, config: HandConfig, _rules: GameRules): boolean => {
+            if (hand.mentsu.some(m => m.isOpen)) return false;
+            // Ippatsu requires Riichi
+            return config.isRiichi && config.isIppatsu;
+        }
+    } as YakuRule,
 };
 
 /**

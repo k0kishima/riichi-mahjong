@@ -99,4 +99,43 @@ describe('detectAgari', () => {
 
         expect(yakuList).toHaveLength(0);
     });
+
+    test('Riichi Hand', () => {
+        // Riichi + Tanyao
+        const hand = mpszStringToHaiCounts('234m234p234s66p888s');
+        const config = createConfig();
+        config.isRiichi = true;
+        const rules = createGameRules();
+
+        const yakuList = detectAgari(hand, 14, config, rules);
+
+        expect(yakuList.sort()).toEqual(['Riichi', 'Tanyao']);
+    });
+
+    test('Menzen Tsumo Hand', () => {
+        // Tsumo + Pinfu
+        const hand = mpszStringToHaiCounts('123m456p789s23m99p1m');
+        const config = createConfig();
+        config.isTsumo = true;
+        config.jikaze = 28; // South
+        const rules = createGameRules();
+
+        const yakuList = detectAgari(hand, 0, config, rules); // Win on 1m
+
+        expect(yakuList.sort()).toEqual(['MenzenTsumo', 'Pinfu']);
+    });
+
+    test('Riichi + Ippatsu + Tsumo Hand', () => {
+        // Riichi + Ippatsu + Tsumo + Tanyao
+        const hand = mpszStringToHaiCounts('234m234p234s66p888s');
+        const config = createConfig();
+        config.isRiichi = true;
+        config.isIppatsu = true;
+        config.isTsumo = true;
+        const rules = createGameRules();
+
+        const yakuList = detectAgari(hand, 14, config, rules);
+
+        expect(yakuList.sort()).toEqual(['Ippatsu', 'MenzenTsumo', 'Riichi', 'Tanyao']);
+    });
 });
