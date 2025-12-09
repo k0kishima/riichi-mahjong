@@ -359,4 +359,175 @@ describe("detectAgari", () => {
 		const yakuList = detectAgari(counts, 0, config, rules);
 		expect(yakuList).toContain(YakuName.ChuurenPoutou);
 	});
+
+	// --- Situational Yaku Tests ---
+
+	test("detects Rinshan Kaihou", () => {
+		// Rinshan: Win on tile from dead wall after Kan. Counts as Tsumo.
+		const config = createConfig();
+		config.isRinshan = true;
+		config.isTsumo = true; // Rinshan implies Tsumo
+		const rules = createGameRules();
+		const handStr = "123m456p789s11z222z33z"; // Valid hand
+		const counts = mpszStringToHaiCounts(handStr);
+
+		const yakuList = detectAgari(counts, 0, config, rules);
+		expect(yakuList).toContain(YakuName.Rinshan);
+		expect(yakuList).toContain(YakuName.MenzenTsumo); // Usually combined if menzen
+	});
+
+	test("detects Chankan", () => {
+		// Chankan: Win on tile added to Kong. Counts as Ron.
+		const config = createConfig();
+		config.isChankan = true;
+		config.isTsumo = false;
+		const rules = createGameRules();
+		const handStr = "123m456p789s11z222z33z";
+		const counts = mpszStringToHaiCounts(handStr);
+
+		const yakuList = detectAgari(counts, 0, config, rules);
+		expect(yakuList).toContain(YakuName.Chankan);
+	});
+
+	test("detects Haitei (Tsumo)", () => {
+		const config = createConfig();
+		config.isHaitei = true;
+		config.isTsumo = true;
+		const rules = createGameRules();
+		const handStr = "123m456p789s11z222z33z";
+		const counts = mpszStringToHaiCounts(handStr);
+
+		const yakuList = detectAgari(counts, 0, config, rules);
+		expect(yakuList).toContain(YakuName.Haitei);
+		expect(yakuList).toContain(YakuName.MenzenTsumo);
+	});
+
+	test("detects Houtei (Ron)", () => {
+		const config = createConfig();
+		config.isHoutei = true;
+		config.isTsumo = false;
+		const rules = createGameRules();
+		const handStr = "123m456p789s11z222z33z";
+		const counts = mpszStringToHaiCounts(handStr);
+
+		const yakuList = detectAgari(counts, 0, config, rules);
+		expect(yakuList).toContain(YakuName.Houtei);
+	});
+
+	test("detects Double Riichi", () => {
+		const config = createConfig();
+		config.isDoubleRiichi = true;
+		config.isRiichi = true; // Usually both checked in UI, or Double implies Riichi status
+		const rules = createGameRules();
+		const handStr = "123m456p789s11z222z33z";
+		const counts = mpszStringToHaiCounts(handStr);
+
+		const yakuList = detectAgari(counts, 0, config, rules);
+		expect(yakuList).toContain(YakuName.DoubleRiichi);
+		// Should NOT contain Single Riichi (Exclusive)
+		expect(yakuList).not.toContain(YakuName.Riichi);
+	});
+
+	test("Double Riichi + Ippatsu", () => {
+		const config = createConfig();
+		config.isDoubleRiichi = true;
+		config.isRiichi = true;
+		config.isIppatsu = true;
+		const rules = createGameRules();
+		const handStr = "123m456p789s11z222z33z";
+		const counts = mpszStringToHaiCounts(handStr);
+
+		const yakuList = detectAgari(counts, 0, config, rules);
+		expect(yakuList).toContain(YakuName.DoubleRiichi);
+		expect(yakuList).toContain(YakuName.Ippatsu);
+		expect(yakuList).not.toContain(YakuName.Riichi);
+	});
+
+	test("detects Tenhou (Yakuman)", () => {
+		const config = createConfig();
+		config.isTenhou = true;
+		config.isTsumo = true;
+		const rules = createGameRules();
+		const handStr = "123m456p789s11z222z33z";
+		const counts = mpszStringToHaiCounts(handStr);
+
+		const yakuList = detectAgari(counts, 0, config, rules);
+		expect(yakuList).toContain(YakuName.Tenhou);
+	});
+
+	test("detects Chiihou (Yakuman)", () => {
+		const config = createConfig();
+		config.isChiihou = true;
+		config.isTsumo = true;
+		const rules = createGameRules();
+		const handStr = "123m456p789s11z222z33z";
+		const counts = mpszStringToHaiCounts(handStr);
+
+		const yakuList = detectAgari(counts, 0, config, rules);
+		expect(yakuList).toContain(YakuName.Chiihou);
+	});
+
+	// --- Composite Yaku Tests ---
+
+	test("Riichi + Pinfu + Tsumo (Standard)", () => {
+		const config = createConfig();
+		config.isRiichi = true;
+		config.isTsumo = true;
+		config.jikaze = 28; // South (Non-value head)
+		const rules = createGameRules();
+		const handStr = "123m456p789s23m99p"; // 23m waiting for 1m or 4m. 99p head.
+		const counts = mpszStringToHaiCounts(handStr + "1m"); // Win on 1m
+		const winTile = 0; // 1m
+
+		const yakuList = detectAgari(counts, winTile, config, rules);
+		expect(yakuList).toContain(YakuName.Riichi);
+		expect(yakuList).toContain(YakuName.Pinfu);
+		expect(yakuList).toContain(YakuName.MenzenTsumo);
+	});
+
+	test("Chanta + Sanshoku + Yakuhai", () => {
+		// 123m 123p 123s 111z 22z. Win 22z (or any).
+		// Chanta (Terminals/Honors in each)
+		// Sanshoku (123 mps)
+		// Yakuhai (East 1z - if Bakaze/Jikaze)
+		const config = createConfig();
+		config.bakaze = 27; // East
+		const rules = createGameRules();
+		const handStr = "123m123p123s111z22z";
+		const counts = mpszStringToHaiCounts(handStr);
+
+		const yakuList = detectAgari(counts, 0, config, rules); // Win on 1m? No, need to win on valid tile.
+		// Wait, detectAgari(counts, winTile).
+		// winTile needs to be a valid tile index. 0 is 1m.
+		// 123m123p123s111z22z.
+		// 1m is in the hand, so it's fine as a win tile?
+		// But if we win on 1m, the pair is 22z.
+		// 123m -> 1m is terminal. 123p -> 1p terminal. 123s -> 1s terminal. 111z -> East (Honor).
+		// 22z -> South (Honor).
+		// All groups have terminal/honor. Chanta OK.
+		// Sanshoku 123 OK.
+		// Yakuhai (East) OK.
+		// Win can be 1m (0).
+
+		expect(yakuList).toContain(YakuName.Chanta);
+		expect(yakuList).toContain(YakuName.SanshokuDoujun);
+		expect(yakuList).toContain(YakuName.Bakaze); // 111z is East Pung
+	});
+
+	test("Honitsu + Yakuhai + Toitoi", () => {
+		// 111m 444m 777m 111z 22z.
+		// Honitsu (Manzu + Honors)
+		// Toitoi (All Triples)
+		// Yakuhai (East 1z)
+		const config = createConfig();
+		config.bakaze = 27;
+		const rules = createGameRules();
+		const handStr = "111m444m777m111z22z";
+		const counts = mpszStringToHaiCounts(handStr);
+
+		const yakuList = detectAgari(counts, 0, config, rules);
+		expect(yakuList).toContain(YakuName.Honitsu);
+		expect(yakuList).toContain(YakuName.Toitoi);
+		expect(yakuList).toContain(YakuName.Bakaze);
+	});
 });

@@ -38,25 +38,31 @@ export const YakuName = {
 	Pinfu: "Pinfu",
 	Riichi: "Riichi",
 	MenzenTsumo: "MenzenTsumo",
+	DoubleRiichi: "DoubleRiichi",
 	Ippatsu: "Ippatsu",
+	Chankan: "Chankan",
+	Rinshan: "Rinshan",
+	Haitei: "Haitei",
+	Houtei: "Houtei",
 
 	// Suit-based Yaku (染め手)
 	Honitsu: "Honitsu",
 	Chinitsu: "Chinitsu",
 
 	// Yakuhai variations
-	Yakuhai: "Yakuhai", // Generic
 	Haku: "Haku",
 	Hatsu: "Hatsu",
 	Chun: "Chun",
 	Bakaze: "Bakaze",
 	Jikaze: "Jikaze",
 
-	// Sequence/Triplet Yaku
+	// Sequence Yaku (順子系)
 	Iipeiko: "Iipeiko",
 	Ryanpeiko: "Ryanpeiko",
 	SanshokuDoujun: "SanshokuDoujun",
 	Ittsu: "Ittsu",
+
+	// Triplet/Quad Yaku (刻子/槓子系)
 	Toitoi: "Toitoi",
 	Sanankou: "Sanankou",
 	Sankantsu: "Sankantsu",

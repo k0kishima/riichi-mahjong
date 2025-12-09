@@ -357,7 +357,81 @@ export const YakuRules = {
 			_rules: GameRules,
 		): boolean => {
 			if (hand.mentsu.some((m) => m.isOpen)) return false;
-			return config.isRiichi;
+			// If Double Riichi is valid, regular Riichi is not counted (or upgraded).
+			return config.isRiichi && !config.isDoubleRiichi;
+		},
+	} as YakuRule,
+
+	DoubleRiichi: {
+		name: YakuName.DoubleRiichi,
+		hanOpen: 0,
+		hanClosed: 2,
+		isYakuman: false,
+		check: (
+			hand: HandStructure,
+			config: HandConfig,
+			_rules: GameRules,
+		): boolean => {
+			if (hand.mentsu.some((m) => m.isOpen)) return false;
+			return config.isDoubleRiichi;
+		},
+	} as YakuRule,
+
+	Chankan: {
+		name: YakuName.Chankan,
+		hanOpen: 1,
+		hanClosed: 1,
+		isYakuman: false,
+		check: (
+			_hand: HandStructure,
+			config: HandConfig,
+			_rules: GameRules,
+		): boolean => {
+			return config.isChankan;
+		},
+	} as YakuRule,
+
+	Rinshan: {
+		name: YakuName.Rinshan,
+		hanOpen: 1,
+		hanClosed: 1,
+		isYakuman: false,
+		check: (
+			_hand: HandStructure,
+			config: HandConfig,
+			_rules: GameRules,
+		): boolean => {
+			return config.isRinshan;
+		},
+	} as YakuRule,
+
+	Haitei: {
+		name: YakuName.Haitei,
+		hanOpen: 1,
+		hanClosed: 1,
+		isYakuman: false,
+		check: (
+			_hand: HandStructure,
+			config: HandConfig,
+			_rules: GameRules,
+		): boolean => {
+			// Haitei is Tsumo on last tile
+			return config.isTsumo && config.isHaitei;
+		},
+	} as YakuRule,
+
+	Houtei: {
+		name: YakuName.Houtei,
+		hanOpen: 1,
+		hanClosed: 1,
+		isYakuman: false,
+		check: (
+			_hand: HandStructure,
+			config: HandConfig,
+			_rules: GameRules,
+		): boolean => {
+			// Houtei is Ron on last tile
+			return !config.isTsumo && config.isHoutei;
 		},
 	} as YakuRule,
 

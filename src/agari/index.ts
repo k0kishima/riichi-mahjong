@@ -7,9 +7,13 @@ import { decomposeHand } from "./structure";
 /**
  * Detects Yaku from the hand.
  *
+ * This function evaluates both:
+ * 1. **Structural Yaku (構造役)**: Determined solely by the tile combination (e.g., Tanyao, Pinfu, Chinitsu).
+ * 2. **Situational Yaku (状況役)**: Determined by the provided `config` flags (e.g., Riichi, Rinshan, Chankan, Haitei).
+ *
  * @param haiCounts - The hand to evaluate (must be 14 tiles total).
  * @param winTile - The tile that completed the hand.
- * @param config - Configuration (rules, dora, wind, etc.).
+ * @param config - Configuration including game state flags (Riichi, Tsumo, etc.) and wind settings.
  * @param gameRules - Game rules (e.g. Kuitan, AkaDora).
  * @param melds - Optional list of fixed melds (open calls or Kans).
  * @returns List of detected Yaku names. Returns empty array if no yaku or not agari.
