@@ -1,11 +1,19 @@
 import { describe, expect, test } from "vitest";
 import { detectAgari } from "../src/agari";
+import { decomposeTehai } from "../src/agari/structure";
 import { mpszStringToHaiCounts } from "../src/hai";
 import type { GameRules } from "../src/types/game";
-import { type HandConfig, YakuName } from "../src/types/yaku";
+import {
+	type AgariConfig,
+	Jantou,
+	type Mentsu,
+	MentsuType,
+	TehaiStructure,
+	YakuName,
+} from "../src/types/yaku";
 
 // Helper to create basic config
-const createConfig = (): HandConfig => ({
+const createAgariConfig = (): AgariConfig => ({
 	isTsumo: false,
 	isRiichi: false,
 	isIppatsu: false,
@@ -33,7 +41,7 @@ describe("detectAgari", () => {
 		// 888s is a triplet, so No Pinfu.
 		// 234m, 234p, 234s -> Sanshoku Doujun!
 		const hand = mpszStringToHaiCounts("234m234p234s888s66p");
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 
 		const yakuList = detectAgari(hand, 14, config, rules); // 14 is 6p
@@ -46,7 +54,7 @@ describe("detectAgari", () => {
 		// 123m 456p 789s 23m 99p. Win 1m (0).
 		// 123m + 123m (from 23m+1m) -> Iipeiko!
 		const hand = mpszStringToHaiCounts("123m456p789s23m99p1m"); // Added 1m to complete
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.jikaze = 28; // South (Head is 9p, safe)
 		const rules = createGameRules();
 
@@ -58,7 +66,7 @@ describe("detectAgari", () => {
 	test("Tanyao + Pinfu Hand", () => {
 		// 234m 345p 456s 67p 22s. Win 8p.
 		const hand = mpszStringToHaiCounts("234m345p456s67p22s8p"); // Added 8p
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 
 		const yakuList = detectAgari(hand, 16, config, rules); // 16 is 8p
@@ -69,7 +77,7 @@ describe("detectAgari", () => {
 
 	test("Yakuhai Hand (White Dragon)", () => {
 		const hand = mpszStringToHaiCounts("123m456p789s11z555z");
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 
 		const yakuList = detectAgari(hand, 31, config, rules);
@@ -80,7 +88,7 @@ describe("detectAgari", () => {
 		// Changed hand to avoid Sanshoku/Iipeiko
 		// 123m 456p 789s 999m 11z
 		const hand = mpszStringToHaiCounts("123m456p789s999m11z");
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.jikaze = 28; // South
 		config.bakaze = 28; // South
 		const rules = createGameRules();
@@ -94,7 +102,7 @@ describe("detectAgari", () => {
 	test("Riichi Hand + Sanshoku", () => {
 		// Riichi + Tanyao + Sanshoku
 		const hand = mpszStringToHaiCounts("234m234p234s66p888s");
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isRiichi = true;
 		const rules = createGameRules();
 
@@ -105,7 +113,7 @@ describe("detectAgari", () => {
 	test("Menzen Tsumo Hand + Iipeiko", () => {
 		// Tsumo + Pinfu + Iipeiko
 		const hand = mpszStringToHaiCounts("123m456p789s23m99p1m");
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isTsumo = true;
 		config.jikaze = 28; // South
 		const rules = createGameRules();
@@ -117,7 +125,7 @@ describe("detectAgari", () => {
 	test("Riichi + Ippatsu + Tsumo Hand + Sanshoku", () => {
 		// Riichi + Ippatsu + Tsumo + Tanyao + Sanshoku
 		const hand = mpszStringToHaiCounts("234m234p234s66p888s");
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isRiichi = true;
 		config.isIppatsu = true;
 		config.isTsumo = true;
@@ -136,13 +144,13 @@ describe("detectAgari", () => {
 	test("detects Chinitsu correctly", () => {
 		// Chinitsu Manzu Closed
 		// 123m 456m 789m 222m 55m (14 tiles)
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isTsumo = true;
 		const rules = createGameRules();
 		const counts = mpszStringToHaiCounts("12345678922255m");
-		const winTile = 4; // 5m
+		const agariHai = 4; // 5m
 
-		const yakuList = detectAgari(counts, winTile, config, rules);
+		const yakuList = detectAgari(counts, agariHai, config, rules);
 
 		// At least one interpretation should be Chinitsu + Tsumo
 		expect(yakuList).toContain(YakuName.Chinitsu);
@@ -151,12 +159,12 @@ describe("detectAgari", () => {
 
 	test("detects Honitsu correctly", () => {
 		// Honitsu Manzu + Honors
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 		const counts = mpszStringToHaiCounts("123456789m11122z");
-		const winTile = 27; // 1z
+		const agariHai = 27; // 1z
 
-		const yakuList = detectAgari(counts, winTile, config, rules);
+		const yakuList = detectAgari(counts, agariHai, config, rules);
 
 		// Should detect Honitsu
 		expect(yakuList).toContain(YakuName.Honitsu);
@@ -176,21 +184,21 @@ describe("detectAgari", () => {
 		// If I pass `fixedMelds` with Kantsu, it should work.
 		// Let's assume the user has declared Ankan/Minkan.
 
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 
-		const kantsu1: import("../src/types/yaku").Mentsu = {
-			type: "kantsu",
+		const kantsu1: Mentsu = {
+			type: MentsuType.Kantsu,
 			tiles: [0, 0, 0, 0],
 			isOpen: false,
 		};
-		const kantsu2: import("../src/types/yaku").Mentsu = {
-			type: "kantsu",
+		const kantsu2: Mentsu = {
+			type: MentsuType.Kantsu,
 			tiles: [9, 9, 9, 9],
 			isOpen: false,
 		};
-		const kantsu3: import("../src/types/yaku").Mentsu = {
-			type: "kantsu",
+		const kantsu3: Mentsu = {
+			type: MentsuType.Kantsu,
 			tiles: [18, 18, 18, 18],
 			isOpen: false,
 		};
@@ -203,7 +211,11 @@ describe("detectAgari", () => {
 		const _counts = mpszStringToHaiCounts(handStr); // only 2 tiles left effectively?
 		// Wait, detectAgari expects full counts?
 		// "haiCounts" + "melds" -> decomposeHand combines them?
-		// decomposeHand(haiCounts, winTile, fixedMelds).
+		const tehai = decomposeTehai(mpszStringToHaiCounts("123m22z"), 0, [
+			kantsu1,
+			kantsu2,
+			kantsu3,
+		]);
 		// Logic: finds head from counts...
 		// If fixedMelds has 3, need 1 more from counts.
 		// If I pass 22z in counts, it finds head 22z.
@@ -227,7 +239,7 @@ describe("detectAgari", () => {
 		// 222m 222p 222s 888s 99p.
 		const handStr = "222m222p222s888s99p";
 		const counts = mpszStringToHaiCounts(handStr);
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 
 		const yakuList = detectAgari(counts, 0, config, rules);
@@ -241,7 +253,7 @@ describe("detectAgari", () => {
 		// This is 4 of 1m -> Chiitoitsu allows 4 of same if they are distinct pairs?
 		// Standard rule: 4 of same tile is NOT 2 pairs for Chiitoitsu.
 		// So use 11 33 55 77 99 m 22 44 p.
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 		const handStr = "1133557799m2244p";
 		const counts = mpszStringToHaiCounts(handStr);
@@ -254,7 +266,7 @@ describe("detectAgari", () => {
 
 	test("detects Kokushi Musou correctly", () => {
 		// 19m 19p 19s 1234567z + 1m (Pair 1m)
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 		const handStr = "19m19p19s1234567z1m";
 		const counts = mpszStringToHaiCounts(handStr);
@@ -269,7 +281,7 @@ describe("detectAgari", () => {
 		// Terminal/Honor in every block. Contains sequence.
 		const handStr = "123m789p123s999s11z";
 		const counts = mpszStringToHaiCounts(handStr);
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 
 		const yakuList = detectAgari(counts, 27, config, rules); // Win on 11z (index 27)
@@ -281,7 +293,7 @@ describe("detectAgari", () => {
 		// 123m 789p 123s 999s 11p. (No honors).
 		const handStr = "123m789p123s999s11p";
 		const counts = mpszStringToHaiCounts(handStr);
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 
 		const yakuList = detectAgari(counts, 9, config, rules); // Win on 11p (index 9)
@@ -295,7 +307,7 @@ describe("detectAgari", () => {
 		// Toitoi (2) + Honroto (2) + Yakuhai (1) + ...
 		const handStr = "111m999p111s999s11z";
 		const counts = mpszStringToHaiCounts(handStr);
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 
 		const yakuList = detectAgari(counts, 0, config, rules);
@@ -308,7 +320,7 @@ describe("detectAgari", () => {
 		// White+Green Triples. Red Pair.
 		const handStr = "123m456p555z666z77z";
 		const counts = mpszStringToHaiCounts(handStr);
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 
 		const yakuList = detectAgari(counts, 0, config, rules);
@@ -319,7 +331,7 @@ describe("detectAgari", () => {
 		// 111m 333m 555p 777s 99s. Closed. Tsumo.
 		const handStr = "111m333m555p777s99s";
 		const counts = mpszStringToHaiCounts(handStr);
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isTsumo = true;
 		const rules = createGameRules();
 
@@ -331,7 +343,7 @@ describe("detectAgari", () => {
 		// 555z 666z 777z 123m 99p.
 		const handStr = "123m555z666z777z99p";
 		const counts = mpszStringToHaiCounts(handStr);
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 
 		const yakuList = detectAgari(counts, 0, config, rules);
@@ -342,7 +354,7 @@ describe("detectAgari", () => {
 		// 111z 222z 333z 444z 55z.
 		const handStr = "111z222z333z444z55z";
 		const counts = mpszStringToHaiCounts(handStr);
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 
 		const yakuList = detectAgari(counts, 0, config, rules);
@@ -353,7 +365,7 @@ describe("detectAgari", () => {
 		// 1112345678999m + 1m.
 		const handStr = "11112345678999m";
 		const counts = mpszStringToHaiCounts(handStr);
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createGameRules();
 
 		const yakuList = detectAgari(counts, 0, config, rules);
@@ -364,7 +376,7 @@ describe("detectAgari", () => {
 
 	test("detects Rinshan Kaihou", () => {
 		// Rinshan: Win on tile from dead wall after Kan. Counts as Tsumo.
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isRinshan = true;
 		config.isTsumo = true; // Rinshan implies Tsumo
 		const rules = createGameRules();
@@ -378,7 +390,7 @@ describe("detectAgari", () => {
 
 	test("detects Chankan", () => {
 		// Chankan: Win on tile added to Kong. Counts as Ron.
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isChankan = true;
 		config.isTsumo = false;
 		const rules = createGameRules();
@@ -390,7 +402,7 @@ describe("detectAgari", () => {
 	});
 
 	test("detects Haitei (Tsumo)", () => {
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isHaitei = true;
 		config.isTsumo = true;
 		const rules = createGameRules();
@@ -403,7 +415,7 @@ describe("detectAgari", () => {
 	});
 
 	test("detects Houtei (Ron)", () => {
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isHoutei = true;
 		config.isTsumo = false;
 		const rules = createGameRules();
@@ -415,7 +427,7 @@ describe("detectAgari", () => {
 	});
 
 	test("detects Double Riichi", () => {
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isDoubleRiichi = true;
 		config.isRiichi = true; // Usually both checked in UI, or Double implies Riichi status
 		const rules = createGameRules();
@@ -429,7 +441,7 @@ describe("detectAgari", () => {
 	});
 
 	test("Double Riichi + Ippatsu", () => {
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isDoubleRiichi = true;
 		config.isRiichi = true;
 		config.isIppatsu = true;
@@ -444,7 +456,7 @@ describe("detectAgari", () => {
 	});
 
 	test("detects Tenhou (Yakuman)", () => {
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isTenhou = true;
 		config.isTsumo = true;
 		const rules = createGameRules();
@@ -456,7 +468,7 @@ describe("detectAgari", () => {
 	});
 
 	test("detects Chiihou (Yakuman)", () => {
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isChiihou = true;
 		config.isTsumo = true;
 		const rules = createGameRules();
@@ -470,16 +482,16 @@ describe("detectAgari", () => {
 	// --- Composite Yaku Tests ---
 
 	test("Riichi + Pinfu + Tsumo (Standard)", () => {
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.isRiichi = true;
 		config.isTsumo = true;
 		config.jikaze = 28; // South (Non-value head)
 		const rules = createGameRules();
 		const handStr = "123m456p789s23m99p"; // 23m waiting for 1m or 4m. 99p head.
 		const counts = mpszStringToHaiCounts(handStr + "1m"); // Win on 1m
-		const winTile = 0; // 1m
+		const agariHai = 0; // 1m
 
-		const yakuList = detectAgari(counts, winTile, config, rules);
+		const yakuList = detectAgari(counts, agariHai, config, rules);
 		expect(yakuList).toContain(YakuName.Riichi);
 		expect(yakuList).toContain(YakuName.Pinfu);
 		expect(yakuList).toContain(YakuName.MenzenTsumo);
@@ -490,7 +502,7 @@ describe("detectAgari", () => {
 		// Chanta (Terminals/Honors in each)
 		// Sanshoku (123 mps)
 		// Yakuhai (East 1z - if Bakaze/Jikaze)
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.bakaze = 27; // East
 		const rules = createGameRules();
 		const handStr = "123m123p123s111z22z";
@@ -519,7 +531,7 @@ describe("detectAgari", () => {
 		// Honitsu (Manzu + Honors)
 		// Toitoi (All Triples)
 		// Yakuhai (East 1z)
-		const config = createConfig();
+		const config = createAgariConfig();
 		config.bakaze = 27;
 		const rules = createGameRules();
 		const handStr = "111m444m777m111z22z";

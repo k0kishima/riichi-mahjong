@@ -2,9 +2,9 @@ import { describe, expect, test } from "vitest";
 import { detectAgari } from "../src/agari";
 import { mpszStringToHaiCounts } from "../src/hai";
 import type { GameRules } from "../src/types/game";
-import { type HandConfig, type Mentsu, MentsuType } from "../src/types/yaku";
+import { type AgariConfig, type Mentsu, MentsuType } from "../src/types/yaku";
 
-const createConfig = (): HandConfig => ({
+const createAgariConfig = (): AgariConfig => ({
 	isTsumo: false,
 	isRiichi: false,
 	isIppatsu: false,
@@ -85,7 +85,7 @@ describe("calculateHandValue with Melds", () => {
 		const closedLink = "234m345s888s66p";
 		const closedHand = mpszStringToHaiCounts(closedLink);
 
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createRules();
 
 		const yakuList = detectAgari(closedHand, 14, config, rules, [meldTanyao]);
@@ -103,7 +103,7 @@ describe("calculateHandValue with Melds", () => {
 		const closedLink = "234m345s888s66p";
 		const closedHand = mpszStringToHaiCounts(closedLink);
 
-		const config = createConfig();
+		const config = createAgariConfig();
 		const rules = createRules();
 		rules.hasKuitan = false; // Disable Kuitan
 

@@ -3,7 +3,7 @@ import type { HaiKindId } from "./hai";
 /**
  * Configuration for hand calculation
  */
-export interface HandConfig {
+export interface AgariConfig {
 	isTsumo: boolean;
 	isRiichi: boolean;
 	isIppatsu: boolean;
@@ -107,7 +107,7 @@ export interface Yaku {
 /**
  * Result of hand calculation
  */
-export interface HandResponse {
+export interface AgariResponse {
 	cost: {
 		main: number;
 		/** Payment from others for tsumo (dealer/non-dealer split) */
@@ -120,7 +120,7 @@ export interface HandResponse {
 	error: string | null;
 	fuDetails: { reason: string; fu: number }[];
 	/** The structure chosen for this result (useful for score calculation) */
-	structure?: HandStructure;
+	structure?: TehaiStructure;
 }
 
 /**
@@ -131,7 +131,7 @@ export interface AgariResult {
 	yaku: YakuName[];
 	han: number;
 	error?: string;
-	structure?: HandStructure;
+	structure?: TehaiStructure;
 }
 
 /**
@@ -170,7 +170,7 @@ export interface Mentsu {
 /**
  * Head (雀頭) - A pair of tiles (Toitsu / 対子).
  */
-export interface Head {
+export interface Jantou {
 	/** [tile, tile] */
 	tiles: HaiKindId[];
 }
@@ -178,18 +178,18 @@ export interface Head {
 /**
  * A partial unit of a complete hand (Mentsu or Head).
  */
-export type Block = Mentsu | Head;
+export type Block = Mentsu | Jantou;
 
 /**
  * Represents a decomposed hand structure (4 mentsu + 1 head, or chitoitsu/kokushi)
  */
-export interface HandStructure {
+export interface TehaiStructure {
 	/** Should be 4 for standard hand */
 	mentsu: Mentsu[];
 	/** should be 1 pair */
-	head: Head;
+	jantou: Jantou;
 	/** The waiting tile(s) indices - conceptually, usually just the win tile */
-	wait: HaiKindId[];
+	machi: HaiKindId[];
 	/** The tile that completed the hand */
-	winTile: HaiKindId;
+	agariHai: HaiKindId;
 }

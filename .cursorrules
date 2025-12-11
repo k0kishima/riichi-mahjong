@@ -23,15 +23,35 @@ This project follows a specific TSDoc convention to facilitate both English-spea
 export function calculateShanten(tiles: HaiCounts): number { ... }
 ```
 
-## Terminology Map
-- Meld -> Mentsu (面子)
-- Head -> Head / Jantou (雀頭)
-- Sequence -> Shuntsu (順子)
-- Triplet -> Koutsu (刻子)
-- Quad -> Kantsu (槓子)
-- Pair -> Toitsu (対子)
-- Win -> Agari (和了)
-- Ready -> Tenpai (聴牌)
+## Naming Conventions (命名規約)
+
+We strictly Adopt **Romanized Japanese** for Mahjong domain terms to match the mental model of players and avoided ambiguous English translations.
+
+### Core Principle
+- **DO**: Use Romanized Japanese (e.g., `Machi`, `Tehai`, `Agari`, `Furo`).
+- **DO NOT**: Use English translations (e.g., `Wait`, `Hand`, `Win`, `Meld`).
+
+### Terminology Map (Strict)
+
+| English (Avoid) | **Code Term (Strict)** | Japanese (Kanji) | Notes |
+| :--- | :--- | :--- | :--- |
+| Hand | **Tehai** | 手牌 | Structural hand representation |
+| Wait | **Machi** | 待ち | e.g., `calculateMachi` |
+| Win | **Agari** | 和了 | e.g., `detectAgari` |
+| Win Tile | **AgariHai** | 和了牌 | |
+| Head | **Jantou** | 雀頭 | Pairs in the structure |
+| Pair | **Toitsu** | 対子 | |
+| Meld (Open) | **Furo** | 副露 | Open calls (Pon, Chi, Kan) |
+| Set | **Mentsu** | 面子 | Valid set (Shuntsu/Koutsu/Kantsu) |
+| Tile | **Hai** | 牌 | e.g., `HaiCounts` |
+| Shanten | **Shanten** | 向聴 | |
+| Bonus Tile | **Dora** | ドラ | |
+
+### Function Naming Pattern
+Use **English Verb** + **Romanized Noun**.
+- ✅ `calculateMachi(tehai)`
+- ❌ `calculateWaits(hand)`
+- ✅ `decomposeTehai(counts)` (Structure decomposition)
 
 ## Coding Standards (コーディング規約)
 

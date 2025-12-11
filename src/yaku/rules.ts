@@ -1,9 +1,9 @@
 import type { GameRules } from "@/types/game";
 import {
-	type HandConfig,
-	type HandStructure,
+	type AgariConfig,
 	type Mentsu,
 	MentsuType,
+	type TehaiStructure,
 	YakuName,
 } from "@/types/yaku";
 
@@ -18,7 +18,11 @@ export interface YakuRule {
 	/**
 	 * Checks if the yaku condition is met.
 	 */
-	check: (hand: HandStructure, config: HandConfig, rules: GameRules) => boolean;
+	check: (
+		tehai: TehaiStructure,
+		config: AgariConfig,
+		rules: GameRules,
+	) => boolean;
 }
 
 /**
@@ -35,25 +39,25 @@ export const YakuRules = {
 		hanClosed: 1,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			rules: GameRules,
 		): boolean => {
 			// Check for Kuitan rule
-			const isHandOpen = hand.mentsu.some((m) => m.isOpen);
+			const isHandOpen = tehai.mentsu.some((m) => m.isOpen);
 			if (isHandOpen && !rules.hasKuitan) {
 				return false;
 			}
 
 			// Check tiles in mentsu
-			for (const mentsu of hand.mentsu) {
+			for (const mentsu of tehai.mentsu) {
 				for (const tile of mentsu.tiles) {
 					if (isTerminalOrHonor(tile)) return false;
 				}
 			}
 
 			// Check tiles in head
-			for (const tile of hand.head.tiles) {
+			for (const tile of tehai.jantou.tiles) {
 				if (isTerminalOrHonor(tile)) return false;
 			}
 
@@ -71,18 +75,18 @@ export const YakuRules = {
 		hanClosed: 1,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			config: HandConfig,
+			tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			// Must be closed (Menzen)
-			if (hand.mentsu.some((m) => m.isOpen)) return false;
+			if (tehai.mentsu.some((m) => m.isOpen)) return false;
 
 			// All mentsu must be Shuntsu
-			if (hand.mentsu.some((m) => m.type !== MentsuType.Shuntsu)) return false;
+			if (tehai.mentsu.some((m) => m.type !== MentsuType.Shuntsu)) return false;
 
 			// Head must NOT be value tile (Yakuhai)
-			const headTile = hand.head.tiles[0];
+			const headTile = tehai.jantou.tiles[0];
 			// Dragon tiles (31, 32, 33) are always value tiles
 			if (headTile >= 31 && headTile <= 33) return false;
 			// Seat Wind (Jikaze) is value tile
@@ -178,11 +182,11 @@ export const YakuRules = {
 			// If WinTile is Middle (index 1):
 			//   - Win 2 for [1,2,3]. Wait [1,3]. Kanchan. Always BAD.
 
-			const winTile = hand.winTile;
+			const winTile = tehai.agariHai;
 			// Check if winTile completes a Shuntsu in Ryanmen way
 			let hasRyanmen = false;
 
-			for (const m of hand.mentsu) {
+			for (const m of tehai.mentsu) {
 				if (m.type !== MentsuType.Shuntsu) continue;
 
 				// Mentsu tiles are sorted? Usually yes.
@@ -269,13 +273,13 @@ export const YakuRules = {
 		hanClosed: 6,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			const allTiles = [
-				...hand.mentsu.flatMap((m) => m.tiles),
-				...hand.head.tiles,
+				...tehai.mentsu.flatMap((m) => m.tiles),
+				...tehai.jantou.tiles,
 			];
 			if (allTiles.length === 0) return false;
 
@@ -307,13 +311,13 @@ export const YakuRules = {
 		hanClosed: 3,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			const allTiles = [
-				...hand.mentsu.flatMap((m) => m.tiles),
-				...hand.head.tiles,
+				...tehai.mentsu.flatMap((m) => m.tiles),
+				...tehai.jantou.tiles,
 			];
 			let hasHonor = false;
 			let hasSuit = false;
@@ -352,11 +356,11 @@ export const YakuRules = {
 		hanClosed: 1,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			config: HandConfig,
+			tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			if (hand.mentsu.some((m) => m.isOpen)) return false;
+			if (tehai.mentsu.some((m) => m.isOpen)) return false;
 			// If Double Riichi is valid, regular Riichi is not counted (or upgraded).
 			return config.isRiichi && !config.isDoubleRiichi;
 		},
@@ -368,11 +372,11 @@ export const YakuRules = {
 		hanClosed: 2,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			config: HandConfig,
+			tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			if (hand.mentsu.some((m) => m.isOpen)) return false;
+			if (tehai.mentsu.some((m) => m.isOpen)) return false;
 			return config.isDoubleRiichi;
 		},
 	} as YakuRule,
@@ -383,8 +387,8 @@ export const YakuRules = {
 		hanClosed: 1,
 		isYakuman: false,
 		check: (
-			_hand: HandStructure,
-			config: HandConfig,
+			_tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			return config.isChankan;
@@ -397,8 +401,8 @@ export const YakuRules = {
 		hanClosed: 1,
 		isYakuman: false,
 		check: (
-			_hand: HandStructure,
-			config: HandConfig,
+			_tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			return config.isRinshan;
@@ -411,8 +415,8 @@ export const YakuRules = {
 		hanClosed: 1,
 		isYakuman: false,
 		check: (
-			_hand: HandStructure,
-			config: HandConfig,
+			_tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			// Haitei is Tsumo on last tile
@@ -426,8 +430,8 @@ export const YakuRules = {
 		hanClosed: 1,
 		isYakuman: false,
 		check: (
-			_hand: HandStructure,
-			config: HandConfig,
+			_tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			// Houtei is Ron on last tile
@@ -441,14 +445,14 @@ export const YakuRules = {
 		hanClosed: 13,
 		isYakuman: true,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			// Check if structure is Kokushi
 			if (
-				hand.mentsu.length === 1 &&
-				hand.mentsu[0].type === MentsuType.Kokushi
+				tehai.mentsu.length === 1 &&
+				tehai.mentsu[0].type === MentsuType.Kokushi
 			) {
 				return true;
 			}
@@ -462,14 +466,14 @@ export const YakuRules = {
 		hanClosed: 2,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			// Check if structure is Chiitoitsu (6 Toitsu mentsu + 1 Head)
 			if (
-				hand.mentsu.length === 6 &&
-				hand.mentsu.every((m) => m.type === MentsuType.Toitsu)
+				tehai.mentsu.length === 6 &&
+				tehai.mentsu.every((m) => m.type === MentsuType.Toitsu)
 			) {
 				return true;
 			}
@@ -487,11 +491,11 @@ export const YakuRules = {
 		hanClosed: 1,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			config: HandConfig,
+			tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			if (hand.mentsu.some((m) => m.isOpen)) return false;
+			if (tehai.mentsu.some((m) => m.isOpen)) return false;
 			return config.isTsumo;
 		},
 	} as YakuRule,
@@ -506,11 +510,11 @@ export const YakuRules = {
 		hanClosed: 1,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			config: HandConfig,
+			tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			if (hand.mentsu.some((m) => m.isOpen)) return false;
+			if (tehai.mentsu.some((m) => m.isOpen)) return false;
 			// Ippatsu requires Riichi
 			return config.isRiichi && config.isIppatsu;
 		},
@@ -525,14 +529,14 @@ export const YakuRules = {
 		hanClosed: 1,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			if (hand.mentsu.some((m) => m.isOpen)) return false;
+			if (tehai.mentsu.some((m) => m.isOpen)) return false;
 
 			// Count identical shuntsu
-			const shuntsuList = hand.mentsu.filter(
+			const shuntsuList = tehai.mentsu.filter(
 				(m) => m.type === MentsuType.Shuntsu,
 			);
 			// Sort by tile index for easy comparison
@@ -576,13 +580,13 @@ export const YakuRules = {
 		hanClosed: 3,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			if (hand.mentsu.some((m) => m.isOpen)) return false;
+			if (tehai.mentsu.some((m) => m.isOpen)) return false;
 
-			const shuntsuList = hand.mentsu.filter(
+			const shuntsuList = tehai.mentsu.filter(
 				(m) => m.type === MentsuType.Shuntsu,
 			);
 			const signatures = shuntsuList.map((m) => m.tiles.join(","));
@@ -612,11 +616,11 @@ export const YakuRules = {
 		hanClosed: 2,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			const shuntsuList = hand.mentsu.filter(
+			const shuntsuList = tehai.mentsu.filter(
 				(m) => m.type === MentsuType.Shuntsu,
 			);
 			if (shuntsuList.length < 3) return false;
@@ -651,11 +655,11 @@ export const YakuRules = {
 		hanClosed: 2,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			const shuntsuList = hand.mentsu.filter(
+			const shuntsuList = tehai.mentsu.filter(
 				(m) => m.type === MentsuType.Shuntsu,
 			);
 			if (shuntsuList.length < 3) return false;
@@ -694,12 +698,12 @@ export const YakuRules = {
 		hanClosed: 2,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			// Must have 4 Koutsu/Kantsu
-			return hand.mentsu.every(
+			return tehai.mentsu.every(
 				(m) => m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu,
 			);
 		},
@@ -715,15 +719,15 @@ export const YakuRules = {
 		hanClosed: 2,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			config: HandConfig,
+			tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			let ankouCount = 0;
-			const winningTile = hand.winTile;
+			const winningTile = tehai.agariHai;
 
 			// Count closed triplets
-			const closedTriplets = hand.mentsu.filter(
+			const closedTriplets = tehai.mentsu.filter(
 				(m) =>
 					(m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) &&
 					!m.isOpen,
@@ -742,11 +746,11 @@ export const YakuRules = {
 
 				if (tripletsWithWinTile.length > 0) {
 					// Check if winTile exists in other struct components
-					const inShuntsu = hand.mentsu.some(
+					const inShuntsu = tehai.mentsu.some(
 						(m) =>
 							m.type === MentsuType.Shuntsu && m.tiles.includes(winningTile),
 					);
-					const inHead = hand.head.tiles.includes(winningTile); // Tanki wait
+					const inHead = tehai.jantou.tiles.includes(winningTile); // Tanki wait
 
 					// If NOT in Shuntsu AND NOT in Head, it MUST be in a triplet.
 					// We must sacrifice one triplet.
@@ -770,11 +774,11 @@ export const YakuRules = {
 		hanClosed: 2,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			const kantsuCount = hand.mentsu.filter(
+			const kantsuCount = tehai.mentsu.filter(
 				(m) => m.type === MentsuType.Kantsu,
 			).length;
 			return kantsuCount >= 3;
@@ -791,11 +795,11 @@ export const YakuRules = {
 		hanClosed: 2,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			const koutsuList = hand.mentsu.filter(
+			const koutsuList = tehai.mentsu.filter(
 				(m) => m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu,
 			);
 			if (koutsuList.length < 3) return false;
@@ -829,16 +833,18 @@ export const YakuRules = {
 		hanClosed: 2,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			// Must contain at least one Shuntsu (otherwise it is Honroto)
-			const hasShuntsu = hand.mentsu.some((m) => m.type === MentsuType.Shuntsu);
+			const hasShuntsu = tehai.mentsu.some(
+				(m) => m.type === MentsuType.Shuntsu,
+			);
 			if (!hasShuntsu) return false;
 
 			// Check if every block has at least one Terminal or Honor
-			const allBlocks = [...hand.mentsu, hand.head];
+			const allBlocks = [...tehai.mentsu, tehai.jantou];
 			const valid = allBlocks.every((block) => {
 				// If Shuntsu: must contain 1 or 9 (1-2-3 or 7-8-9)
 				if ("type" in block && (block as Mentsu).type === MentsuType.Shuntsu) {
@@ -856,8 +862,8 @@ export const YakuRules = {
 			// If it has NO Honors, it is Junchan.
 			// If we implement exclusion STRICTLY:
 			const hasHonor =
-				hand.mentsu.some((m) => m.tiles.some((t) => t >= 27)) ||
-				hand.head.tiles[0] >= 27;
+				tehai.mentsu.some((m) => m.tiles.some((t) => t >= 27)) ||
+				tehai.jantou.tiles[0] >= 27;
 			return hasHonor;
 		},
 	} as YakuRule,
@@ -872,15 +878,17 @@ export const YakuRules = {
 		hanClosed: 3,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			// Must contain at least one Shuntsu (otherwise it is Chinroto)
-			const hasShuntsu = hand.mentsu.some((m) => m.type === MentsuType.Shuntsu);
+			const hasShuntsu = tehai.mentsu.some(
+				(m) => m.type === MentsuType.Shuntsu,
+			);
 			if (!hasShuntsu) return false;
 
-			const allBlocks = [...hand.mentsu, hand.head];
+			const allBlocks = [...tehai.mentsu, tehai.jantou];
 			return allBlocks.every((block) => {
 				if ("type" in block && (block as Mentsu).type === MentsuType.Shuntsu) {
 					return (block as Mentsu).tiles.some((t: number) => isTerminal(t));
@@ -900,8 +908,8 @@ export const YakuRules = {
 		hanClosed: 2,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			// Must NOT contain Shuntsu (All Pon/Head)
@@ -912,8 +920,8 @@ export const YakuRules = {
 			// So Honroto = No Shuntsu + All tiles Terminal/Honor.
 
 			const allTiles = [
-				...hand.mentsu.flatMap((m) => m.tiles),
-				...hand.head.tiles,
+				...tehai.mentsu.flatMap((m) => m.tiles),
+				...tehai.jantou.tiles,
 			];
 			return allTiles.every((t) => isTerminalOrHonor(t));
 		},
@@ -929,19 +937,19 @@ export const YakuRules = {
 		hanClosed: 2,
 		isYakuman: false,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			// 2 Dragon Koutsu + 1 Dragon Pair
-			const dragonKoutsu = hand.mentsu.filter(
+			const dragonKoutsu = tehai.mentsu.filter(
 				(m) =>
 					(m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) &&
 					m.tiles[0] >= 31 &&
 					m.tiles[0] <= 33,
 			).length;
 
-			const headTile = hand.head.tiles[0];
+			const headTile = tehai.jantou.tiles[0];
 			const dragonHead = headTile >= 31 && headTile <= 33;
 
 			return dragonKoutsu === 2 && dragonHead;
@@ -960,8 +968,8 @@ export const YakuRules = {
 		hanClosed: 13,
 		isYakuman: true,
 		check: (
-			hand: HandStructure,
-			config: HandConfig,
+			tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			// Must have 4 Closed Koutsu/Kantsu
@@ -970,7 +978,7 @@ export const YakuRules = {
 			// - Shanpon wait: Tsumo = Suuankou. Ron = Sanankou + Toitoi (Win tile opens the triplet).
 			// - Tanki wait: Win on Head. All 4 triplets are Ankou. Valid Suuankou (even Ron).
 
-			const closedTriplets = hand.mentsu.filter(
+			const closedTriplets = tehai.mentsu.filter(
 				(m) =>
 					(m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) &&
 					!m.isOpen,
@@ -988,7 +996,7 @@ export const YakuRules = {
 			// Can winTile ALSO match a triplet? (e.g. 555 555 666 777 + 5? No).
 			// Assuming valid hand, if winTile completes Head, it strictly completes head.
 
-			const winTile = hand.winTile;
+			const winTile = tehai.agariHai;
 			const tripletMatches = closedTriplets.some((m) =>
 				m.tiles.includes(winTile),
 			);
@@ -1008,11 +1016,11 @@ export const YakuRules = {
 		hanClosed: 13,
 		isYakuman: true,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			const dragonKoutsu = hand.mentsu.filter(
+			const dragonKoutsu = tehai.mentsu.filter(
 				(m) =>
 					(m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) &&
 					m.tiles[0] >= 31 &&
@@ -1032,17 +1040,17 @@ export const YakuRules = {
 		hanClosed: 13,
 		isYakuman: true,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			const windKoutsu = hand.mentsu.filter(
+			const windKoutsu = tehai.mentsu.filter(
 				(m) =>
 					(m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) &&
 					m.tiles[0] >= 27 &&
 					m.tiles[0] <= 30,
 			).length;
-			const headTile = hand.head.tiles[0];
+			const headTile = tehai.jantou.tiles[0];
 			const windHead = headTile >= 27 && headTile <= 30;
 
 			return windKoutsu === 3 && windHead;
@@ -1059,11 +1067,11 @@ export const YakuRules = {
 		hanClosed: 13,
 		isYakuman: true,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			const windKoutsu = hand.mentsu.filter(
+			const windKoutsu = tehai.mentsu.filter(
 				(m) =>
 					(m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) &&
 					m.tiles[0] >= 27 &&
@@ -1083,13 +1091,13 @@ export const YakuRules = {
 		hanClosed: 13,
 		isYakuman: true,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			const allTiles = [
-				...hand.mentsu.flatMap((m) => m.tiles),
-				...hand.head.tiles,
+				...tehai.mentsu.flatMap((m) => m.tiles),
+				...tehai.jantou.tiles,
 			];
 			return allTiles.every((t) => t >= 27);
 		},
@@ -1105,13 +1113,13 @@ export const YakuRules = {
 		hanClosed: 13,
 		isYakuman: true,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			const allTiles = [
-				...hand.mentsu.flatMap((m) => m.tiles),
-				...hand.head.tiles,
+				...tehai.mentsu.flatMap((m) => m.tiles),
+				...tehai.jantou.tiles,
 			];
 			return allTiles.every((t) => isTerminal(t));
 		},
@@ -1127,13 +1135,13 @@ export const YakuRules = {
 		hanClosed: 13,
 		isYakuman: true,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			const allTiles = [
-				...hand.mentsu.flatMap((m) => m.tiles),
-				...hand.head.tiles,
+				...tehai.mentsu.flatMap((m) => m.tiles),
+				...tehai.jantou.tiles,
 			];
 			// Green: 2,3,4,6,8 Sou + Hatsu (32).
 			// Sou offset 18.
@@ -1153,16 +1161,16 @@ export const YakuRules = {
 		hanClosed: 13,
 		isYakuman: true,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			if (hand.mentsu.some((m) => m.isOpen)) return false;
+			if (tehai.mentsu.some((m) => m.isOpen)) return false;
 			// Valid pattern: 1112345678999 in one suit + 1 extra in same suit.
 			// Must be Chinitsu (one suit).
 			const allTiles = [
-				...hand.mentsu.flatMap((m) => m.tiles),
-				...hand.head.tiles,
+				...tehai.mentsu.flatMap((m) => m.tiles),
+				...tehai.jantou.tiles,
 			].sort((a, b) => a - b);
 			const first = allTiles[0];
 			const suit = Math.floor(first / 9); // 0,1,2
@@ -1201,11 +1209,11 @@ export const YakuRules = {
 		hanClosed: 13,
 		isYakuman: true,
 		check: (
-			hand: HandStructure,
-			_config: HandConfig,
+			tehai: TehaiStructure,
+			_config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
-			const kantsuCount = hand.mentsu.filter(
+			const kantsuCount = tehai.mentsu.filter(
 				(m) => m.type === MentsuType.Kantsu,
 			).length;
 			return kantsuCount === 4;
@@ -1222,8 +1230,8 @@ export const YakuRules = {
 		hanClosed: 13,
 		isYakuman: true,
 		check: (
-			_hand: HandStructure,
-			config: HandConfig,
+			_tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			return config.isTenhou;
@@ -1240,8 +1248,8 @@ export const YakuRules = {
 		hanClosed: 13,
 		isYakuman: true,
 		check: (
-			_hand: HandStructure,
-			config: HandConfig,
+			_tehai: TehaiStructure,
+			config: AgariConfig,
 			_rules: GameRules,
 		): boolean => {
 			return config.isChiihou;
@@ -1277,11 +1285,11 @@ export const createYakuhaiRule = (
 	hanClosed: 1,
 	isYakuman: false,
 	check: (
-		hand: HandStructure,
-		_config: HandConfig,
+		_tehai: TehaiStructure,
+		_config: AgariConfig,
 		_rules: GameRules,
 	): boolean => {
-		return hand.mentsu.some(
+		return _tehai.mentsu.some(
 			(m) =>
 				(m.type === MentsuType.Koutsu || m.type === MentsuType.Kantsu) &&
 				m.tiles[0] === tileIndex,
@@ -1292,7 +1300,7 @@ export const createYakuhaiRule = (
 /**
  * Returns a list of all appliable rules based on the hand configuration.
  */
-export function getAppliableRules(config: HandConfig): YakuRule[] {
+export function getAppliableRules(config: AgariConfig): YakuRule[] {
 	// 1. Static Rules (Standard Yaku)
 	const rules: YakuRule[] = Object.values(YakuRules);
 
