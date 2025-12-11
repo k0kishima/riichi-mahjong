@@ -14,6 +14,8 @@ export interface AgariConfig {
 	isDoubleRiichi: boolean;
 	isTenhou: boolean;
 	isChiihou: boolean;
+	/** Whether the player is the Dealer (Oya) */
+	isOya: boolean;
 
 	// Wind settings
 	/** 27: East, 28: South, 29: West, 30: North */

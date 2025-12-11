@@ -231,3 +231,13 @@ export function mpszStringToHaiCounts(mpsz: MpszString): HaiCounts {
 
 	return counts as HaiCounts;
 }
+
+/**
+ * Check if a tile is a Yaochu (Terminal or Honor) tile.
+ * Indices: 0, 8 (Manzu), 9, 17 (Pinzu), 18, 26 (Souzu), 27-33 (Jihai).
+ */
+export function isYaochu(tile: number): boolean {
+	if (tile >= 27) return true; // Honors
+	const mod = tile % 9;
+	return mod === 0 || mod === 8;
+}

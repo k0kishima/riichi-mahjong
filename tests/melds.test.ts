@@ -15,6 +15,7 @@ const createAgariConfig = (): AgariConfig => ({
 	isDoubleRiichi: false,
 	isTenhou: false,
 	isChiihou: false,
+	isOya: false,
 	bakaze: 27,
 	jikaze: 27,
 	doraTiles: [],

@@ -15,8 +15,8 @@
 		"test:coverage": "vitest run --coverage",
 		"lint": "biome lint ./src ./tests",
 		"format": "biome format --write ./src ./tests",
-		"format:check": "biome format ./src ./tests",
 		"check": "biome check --write ./src ./tests",
+		"typecheck": "tsc --noEmit",
 		"prepublishOnly": "npm run build",
 		"prepare": "husky"
 	},

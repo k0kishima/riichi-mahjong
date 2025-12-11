@@ -43,3 +43,9 @@ export * from "./machi";
 export * from "./agari";
 // We don't export from "./yaku" (implementation/rules) directly as public API,
 // except for types which are already exported from types/yaku.
+
+// ============================================
+// Score Calculation (点数計算)
+// ============================================
+
+export * from "./tensu";

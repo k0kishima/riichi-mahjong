@@ -1,14 +1,11 @@
 import { describe, expect, test } from "vitest";
 import { detectAgari } from "../src/agari";
-import { decomposeTehai } from "../src/agari/structure";
 import { mpszStringToHaiCounts } from "../src/hai";
 import type { GameRules } from "../src/types/game";
 import {
 	type AgariConfig,
-	Jantou,
 	type Mentsu,
 	MentsuType,
-	TehaiStructure,
 	YakuName,
 } from "../src/types/yaku";
 
@@ -24,6 +21,7 @@ const createAgariConfig = (): AgariConfig => ({
 	isDoubleRiichi: false,
 	isTenhou: false,
 	isChiihou: false,
+	isOya: false, // Default
 	bakaze: 27, // East
 	jikaze: 27, // East
 	doraTiles: [],
@@ -36,6 +34,7 @@ const createGameRules = (): GameRules => ({
 });
 
 describe("detectAgari", () => {
+
 	test("Tanyao Hand (Simple) + Sanshoku", () => {
 		// 234m 234p 234s 888s 66p (Win on 6p)
 		// 888s is a triplet, so No Pinfu.
@@ -202,28 +201,6 @@ describe("detectAgari", () => {
 			tiles: [18, 18, 18, 18],
 			isOpen: false,
 		};
-
-		// Hand: 1111m 1111p 1111s 22z (Head).
-		// Kantsu passed as fixed (though Ankan is "fixed" in structure).
-
-		// Remaining hand: 22z.
-		const handStr = "22z";
-		const _counts = mpszStringToHaiCounts(handStr); // only 2 tiles left effectively?
-		// Wait, detectAgari expects full counts?
-		// "haiCounts" + "melds" -> decomposeHand combines them?
-		const tehai = decomposeTehai(mpszStringToHaiCounts("123m22z"), 0, [
-			kantsu1,
-			kantsu2,
-			kantsu3,
-		]);
-		// Logic: finds head from counts...
-		// If fixedMelds has 3, need 1 more from counts.
-		// If I pass 22z in counts, it finds head 22z.
-		// Total mentsu = 3 (fixed) + 0 (found) = 3? Invalid.
-		// Need 4 mentsu.
-		// Hand: 3 Kantsu + 1 Shuntsu/Koutsu + Head.
-		// Let's add 1 Shuntsu [1,2,3]m.
-		// 123m 22z.
 
 		const counts2 = mpszStringToHaiCounts("123m22z");
 		const yakuList = detectAgari(counts2, 0, config, rules, [
