@@ -1,0 +1,5 @@
+/**
+ * Riichi Mahjong Library
+ */
+
+export { };
