@@ -16,4 +16,15 @@ describe("HaiKindId (牌種ID)", () => {
     expect(HaiKind.Ton).toBe(27);
     expect(HaiKind.Chun).toBe(33);
   });
+
+  describe("ShantenNumber (シャンテン数)", () => {
+    it("型としてインポート可能であること", () => {
+      // 型レベルのチェックのため、ランタイムでのアサーションは行わないが、
+      // コンパイルエラーにならないことを確認する意図。
+      const tenpai: import("./types").ShantenNumber = 0;
+      const maxShanten: import("./types").ShantenNumber = 13;
+      expect(tenpai).toBe(0);
+      expect(maxShanten).toBe(13);
+    });
+  });
 });

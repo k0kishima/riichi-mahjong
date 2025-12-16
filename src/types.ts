@@ -40,3 +40,32 @@ export const HaiKind = {
 } as const;
 
 export type HaiKind = (typeof HaiKind)[keyof typeof HaiKind];
+
+/**
+ * シャンテン数 (ShantenNumber)
+ *
+ * 和了までの手数 - 1 を表す数値。
+ *
+ * - 0: テンパイ (Tenpai) - 次の1手で和了できる状態
+ * - 1: 1シャンテン - テンパイまであと1手
+ * - ...
+ * - 13: 理論上の最大値 (例: 13面待ちでない国士無双の初期状態など)
+ *
+ * ※ 本ライブラリでは、ツモる前の13枚の手牌に対する計算を前提とするため、
+ *    和了 (-1) はこの型には含めない。
+ */
+export type ShantenNumber =
+  | 0
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 10
+  | 11
+  | 12
+  | 13;

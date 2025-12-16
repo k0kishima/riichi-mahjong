@@ -24,8 +24,8 @@
     "node": ">=20.0.0"
   },
   "lint-staged": {
-    "*": {
-      "{ts,js,json}": "biome check --write --no-errors-on-unmatched"
-    }
+    "*.{ts,js,json}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
   }
 }
