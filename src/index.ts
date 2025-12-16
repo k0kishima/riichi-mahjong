@@ -2,4 +2,4 @@
  * Riichi Mahjong Library
  */
 
-export { };
+export * from './types';
