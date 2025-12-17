@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HAI_KIND_IDS, HaiKind, Tacha } from "./types.js";
+import { type Furo, FuroType, HAI_KIND_IDS, HaiKind, Tacha } from "./types.js";
 
 describe("HaiKindId (牌種ID)", () => {
   it("34種類の牌IDが定義されていること", () => {
@@ -37,6 +37,31 @@ describe("HaiKindId (牌種ID)", () => {
 
     it("要素数が3つであること", () => {
       expect(Object.keys(Tacha)).toHaveLength(3);
+    });
+  });
+
+  describe("Furo (副露メタ情報)", () => {
+    it("Chi/Pon/Daiminkan/Kakan は from プロパティを持つこと", () => {
+      // 型チェックを通るオブジェクトを生成できるか確認
+      const chi: Furo = { type: FuroType.Chi, from: Tacha.Kamicha };
+      const pon: Furo = { type: FuroType.Pon, from: Tacha.Toimen };
+      const daiminkan: Furo = {
+        type: FuroType.Daiminkan,
+        from: Tacha.Shimocha,
+      };
+      const kakan: Furo = { type: FuroType.Kakan, from: Tacha.Kamicha };
+
+      expect(chi.from).toBe(3);
+      expect(pon.from).toBe(2);
+      expect(daiminkan.from).toBe(1);
+      expect(kakan.from).toBe(3);
+    });
+
+    it("Ankan は from プロパティを持たないこと", () => {
+      const ankan: Furo = { type: FuroType.Ankan };
+
+      expect(ankan.type).toBe(FuroType.Ankan);
+      expect(ankan).not.toHaveProperty("from");
     });
   });
 });

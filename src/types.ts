@@ -87,3 +87,29 @@ export const Tacha = {
 } as const;
 
 export type Tacha = (typeof Tacha)[keyof typeof Tacha];
+
+/**
+ * 副露種別 (FuroType)
+ */
+export const FuroType = {
+  Chi: "Chi",
+  Pon: "Pon",
+  Daiminkan: "Daiminkan",
+  Kakan: "Kakan",
+  Ankan: "Ankan",
+} as const;
+
+export type FuroType = (typeof FuroType)[keyof typeof FuroType];
+
+/**
+ * 副露 (Furo)
+ *
+ * 面子に対する「鳴き」のメタ情報。
+ * 構成する牌自体はここには含めず、この型を持つ親（Mentsuなど）が保持することを想定する。
+ */
+export type Furo =
+  | { type: typeof FuroType.Chi; from: Tacha }
+  | { type: typeof FuroType.Pon; from: Tacha }
+  | { type: typeof FuroType.Daiminkan; from: Tacha }
+  | { type: typeof FuroType.Kakan; from: Tacha }
+  | { type: typeof FuroType.Ankan; from?: never }; // 暗槓は相手がいない
