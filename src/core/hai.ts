@@ -1,4 +1,5 @@
 import { type HaiId, HaiKind, type HaiKindId, HaiType } from "../types.js";
+import { asHaiKindId } from "../utils/assertions";
 
 /**
  * 牌種IDから牌種タイプを取得する
@@ -24,10 +25,10 @@ export function kindIdToHaiType(kind: HaiKindId): HaiType {
  * 108-135: 字牌 (28枚 = 7種 * 4枚) -> 27-33
  */
 export function haiIdToKindId(id: HaiId): HaiKindId {
-  if (id < 36) return Math.floor(id / 4) as HaiKindId;
-  if (id < 72) return (Math.floor((id - 36) / 4) + 9) as HaiKindId;
-  if (id < 108) return (Math.floor((id - 72) / 4) + 18) as HaiKindId;
-  return (Math.floor((id - 108) / 4) + 27) as HaiKindId;
+  if (id < 36) return asHaiKindId(Math.floor(id / 4));
+  if (id < 72) return asHaiKindId(Math.floor((id - 36) / 4) + 9);
+  if (id < 108) return asHaiKindId(Math.floor((id - 72) / 4) + 18);
+  return asHaiKindId(Math.floor((id - 108) / 4) + 27);
 }
 
 /**
@@ -40,7 +41,8 @@ export function haiKindToNumber(kind: HaiKindId): number | undefined {
 
   if (type === HaiType.Manzu) return kind - HaiKind.ManZu1 + 1;
   if (type === HaiType.Pinzu) return kind - HaiKind.PinZu1 + 1;
-  if (type === HaiType.Souzu) return kind - HaiKind.SouZu1 + 1;
+  // if (kindIdToHaiType(kind) === HaiType.Souzu)
+  return kind - HaiKind.SouZu1 + 1;
 }
 
 /**

@@ -164,10 +164,10 @@ export type FuroType = (typeof FuroType)[keyof typeof FuroType];
  * 構成する牌自体はここには含めず、この型を持つ親（Mentsuなど）が保持することを想定する。
  */
 export type Furo =
-  | { type: typeof FuroType.Chi; from: Tacha }
-  | { type: typeof FuroType.Pon; from: Tacha }
-  | { type: typeof FuroType.Daiminkan; from: Tacha }
-  | { type: typeof FuroType.Kakan; from: Tacha };
+  | { readonly type: typeof FuroType.Chi; readonly from: Tacha }
+  | { readonly type: typeof FuroType.Pon; readonly from: Tacha }
+  | { readonly type: typeof FuroType.Daiminkan; readonly from: Tacha }
+  | { readonly type: typeof FuroType.Kakan; readonly from: Tacha };
 
 /**
  * 面子種別 (MentsuType)
@@ -190,7 +190,7 @@ export type MentsuType = (typeof MentsuType)[keyof typeof MentsuType];
  * 2. `HaiId`: 実際のゲームの牌譜など、牌の物理的なIDを処理対象とする場合（具象的な計算）。
  */
 interface BaseMentsu<T extends HaiKindId | HaiId> {
-  type: MentsuType;
+  readonly type: MentsuType;
   /**
    * 構成する牌のリスト。
    *
@@ -204,45 +204,45 @@ interface BaseMentsu<T extends HaiKindId | HaiId> {
  * 順子 (Shuntsu)
  */
 export type Shuntsu<T extends HaiKindId | HaiId = HaiKindId> = BaseMentsu<T> & {
-  type: typeof MentsuType.Shuntsu;
-  hais: [T, T, T];
-  furo?: Furo;
+  readonly type: typeof MentsuType.Shuntsu;
+  readonly hais: readonly [T, T, T];
+  readonly furo?: Furo;
 };
 
 /**
  * 刻子 (Koutsu)
  */
 export type Koutsu<T extends HaiKindId | HaiId = HaiKindId> = BaseMentsu<T> & {
-  type: typeof MentsuType.Koutsu;
-  hais: [T, T, T];
-  furo?: Furo;
+  readonly type: typeof MentsuType.Koutsu;
+  readonly hais: readonly [T, T, T];
+  readonly furo?: Furo;
 };
 
 /**
  * 槓子 (Kantsu)
  */
 export type Kantsu<T extends HaiKindId | HaiId = HaiKindId> = BaseMentsu<T> & {
-  type: typeof MentsuType.Kantsu;
-  hais: [T, T, T, T];
-  furo?: Furo;
+  readonly type: typeof MentsuType.Kantsu;
+  readonly hais: readonly [T, T, T, T];
+  readonly furo?: Furo;
 };
 
 /**
  * 対子 (Toitsu)
  */
 export type Toitsu<T extends HaiKindId | HaiId = HaiKindId> = BaseMentsu<T> & {
-  type: typeof MentsuType.Toitsu;
-  hais: [T, T];
-  furo?: never;
+  readonly type: typeof MentsuType.Toitsu;
+  readonly hais: readonly [T, T];
+  readonly furo?: never;
 };
 
 /**
  * 塔子 (Tatsu)
  */
 export type Tatsu<T extends HaiKindId | HaiId = HaiKindId> = BaseMentsu<T> & {
-  type: typeof MentsuType.Tatsu;
-  hais: [T, T];
-  furo?: never;
+  readonly type: typeof MentsuType.Tatsu;
+  readonly hais: readonly [T, T];
+  readonly furo?: never;
 };
 
 /**
@@ -281,8 +281,8 @@ export type Mentsu<T extends HaiKindId | HaiId = HaiKindId> =
  * @template T 牌の型 (HaiKindId | HaiId)
  */
 export interface Tehai<T extends HaiKindId | HaiId = HaiKindId> {
-  closed: T[];
-  exposed: CompletedMentsu<T>[];
+  readonly closed: readonly T[];
+  readonly exposed: readonly CompletedMentsu<T>[];
 }
 
 /**

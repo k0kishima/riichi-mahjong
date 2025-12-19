@@ -137,6 +137,6 @@ describe("Tehai (手牌)", () => {
     expectTypeOf(tehai).toExtend<Tehai<HaiId>>();
 
     expect(tehai.closed[0]).toBe(3);
-    expect(tehai.exposed[0].hais[0]).toBe(0);
+    expect(tehai.exposed[0]?.hais[0]).toBe(0);
   });
 });
