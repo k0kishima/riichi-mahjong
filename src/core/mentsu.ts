@@ -65,8 +65,26 @@ export function isValidToitsu(kindIds: readonly HaiKindId[]): boolean {
 
 /**
  * 塔子かどうかを検証する
- * 未実装
+ * @param kindIds HaiKindIdの配列 (長さ2)
  */
-export function isValidTatsu(_kindIds: readonly HaiKindId[]): boolean {
-  throw new Error("Not implemented");
+export function isValidTatsu(kindIds: readonly HaiKindId[]): boolean {
+  if (kindIds.length !== 2) return false;
+  const [a, b] = kindIds;
+
+  // 数牌でなければならない
+  if (!isSuupai(a) || !isSuupai(b)) return false;
+
+  // 同じ種類でなければならない
+  const typeA = kindIdToHaiType(a);
+  const typeB = kindIdToHaiType(b);
+  if (typeA !== typeB) return false;
+
+  const numA = haiKindToNumber(a);
+  const numB = haiKindToNumber(b);
+
+  if (numA === undefined || numB === undefined) return false;
+
+  const diff = Math.abs(numA - numB);
+  // 差が1 (ペンチャン/リャンメン) または 2 (カンチャン) ならOK
+  return diff === 1 || diff === 2;
 }
