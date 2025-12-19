@@ -1,7 +1,3 @@
----
-trigger: always_on
----
-
 # コーディング規約 (Code Style & Conventions)
 
 ## インポートパス (Import Paths)
@@ -37,5 +33,8 @@ export type Direction = typeof Direction[keyof typeof Direction];
 
 ## 型定義 (Type Definitions)
 ### Interface vs Type
-**ルール:** オブジェクトの型定義には、可能な限り `interface` を使用してください。`type` エリアスは、Union型、Tuple型、または `interface` よりも著しく簡潔に記述できる場合にのみ使用してください。
-**理由:** Interface は一般的により良いエラーメッセージを提供し、意図しない型マージを防ぐための明確な境界を持つため（または必要に応じて拡張可能であるため）。
+**ルール:** オブジェクトの型定義には、可能な限り `interface` を使用してください。`type` エイリアスは、Union型、Tuple型、または `interface` よりも著しく簡潔に記述できる場合にのみ使用してください。
+**理由:**
+- **パフォーマンス (遅延評価):** TypeScriptコンパイラは `interface` を遅延評価するため、コンパイル速度の向上やエディタの応答性改善に寄与します。対して `type` は宣言時に再帰的に解決・展開されるため、複雑な型でコストが高くなる傾向があります。
+- **エラーメッセージ:** 多くの場合、`interface` の方がより簡潔で分かりやすいエラーメッセージを提供します。これは、`type` がコンパイル処理でインライン展開され、エラーメッセージに定義名ではなく構造が表示されてしまうためです。
+- **補足 (Declaration Merging):** `interface` は宣言マージが可能（オープン）ですが、`type` は閉じた定義です。本プロジェクトでは主にパフォーマンスとエディタ体験（DX）の観点から `interface` を推奨します。意図しないマージには注意してください。

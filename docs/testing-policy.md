@@ -1,7 +1,3 @@
----
-trigger: always_on
----
-
 # テストガイド (Testing Guide)
 
 ## テストディレクトリの構造
