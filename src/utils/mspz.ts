@@ -124,7 +124,7 @@ export function haiKindIdsToMspzString(hais: readonly HaiKindId[]): string {
  * @param mspz MSPZ形式の文字列
  * @returns HaiKindId の配列
  */
-export function mspzStringToHaiIds(mspz: string): HaiKindId[] {
+export function mspzStringToHaiKindIds(mspz: string): HaiKindId[] {
   const result: HaiKindId[] = [];
   let currentNumbers: number[] = [];
 

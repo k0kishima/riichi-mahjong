@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { calculateShanten } from "../../src/index";
-import { mspzStringToHaiIds } from "../../src/utils/mspz";
+import { mspzStringToHaiKindIds } from "../../src/utils/mspz";
 
 // ============================================================================
 // テストケース定義 (MSPZ文字列, 期待されるシャンテン数)
@@ -91,7 +91,7 @@ describe("相互検証: シャンテン数計算 (mahjongライブラリ使用)"
   // テストケースを動的に生成
   CASES.forEach(([mpsz, expected], index) => {
     it(`${mpsz} -> ${expected} シャンテン`, () => {
-      const hais = mspzStringToHaiIds(mpsz);
+      const hais = mspzStringToHaiKindIds(mpsz);
       // 現在の calculateShanten は13枚の手牌のみをサポート
       if (hais.length !== 13) {
         console.warn(

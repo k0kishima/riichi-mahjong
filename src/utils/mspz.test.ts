@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest"; // Ensure vitest is imported
 import {
   haiKindIdsToDistribution,
   haiKindIdsToMspzString,
-  mspzStringToHaiIds,
+  mspzStringToHaiKindIds,
 } from "./mspz";
 import { HaiKind } from "../types";
 
 describe("mspz utils", () => {
   describe("haiKindIdsToDistribution", () => {
     it("MSPZ文字列から生成した牌ID配列を正しくカウントできること", () => {
-      const hais = mspzStringToHaiIds("1112345678999m"); // 13枚
+      const hais = mspzStringToHaiKindIds("1112345678999m"); // 13枚
       const counts = haiKindIdsToDistribution(hais);
 
       expect(counts[HaiKind.ManZu1]).toBe(3);
@@ -32,7 +32,7 @@ describe("mspz utils", () => {
     });
 
     it("字牌を含む手牌を正しくカウントできること", () => {
-      const hais = mspzStringToHaiIds("113m122p55577z11s"); // 13枚
+      const hais = mspzStringToHaiKindIds("113m122p55577z11s"); // 13枚
       // 113m -> 1m:2, 3m:1
       // 122p -> 1p:1, 2p:2
       // 55577z -> 5z(白):3, 7z(中):2
@@ -83,14 +83,14 @@ describe("mspz utils", () => {
 
     it("牌ID配列をMSPZ文字列に変換できること (混合)", () => {
       // 113m 122p 11s 55577z
-      const hais = mspzStringToHaiIds("113m122p11s55577z");
+      const hais = mspzStringToHaiKindIds("113m122p11s55577z");
       expect(haiKindIdsToMspzString(hais)).toBe("113m122p11s55577z");
     });
   });
 
-  describe("mspzStringToHaiIds", () => {
+  describe("mspzStringToHaiKindIds", () => {
     it("MSPZ文字列を牌ID配列に変換できること", () => {
-      const hais = mspzStringToHaiIds("123m456p789s1122z");
+      const hais = mspzStringToHaiKindIds("123m456p789s1122z");
       expect(hais.length).toBe(13); // 3+3+3+4 = 13
 
       expect(hais[0]).toBe(HaiKind.ManZu1);
