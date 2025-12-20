@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { calculateKokushiShanten } from "./kokushi";
 import type { HaiId } from "../../../types";
 import { HaiKind, MentsuType } from "../../../types";
+import { haiIdToKindId } from "../../../core/hai"; // Add import
 import { createTehai13 } from "../../../utils/test-helpers";
 
 describe("calculateKokushiShanten", () => {
@@ -147,6 +148,8 @@ describe("calculateKokushiShanten", () => {
     ] as HaiId[];
     // 13種類. 対子なし.
     // シャンテン = 13 - 13 - 0 = 0.
-    expect(calculateKokushiShanten(createTehai13(hais))).toBe(0);
+    expect(
+      calculateKokushiShanten(createTehai13(hais.map(haiIdToKindId))),
+    ).toBe(0);
   });
 });

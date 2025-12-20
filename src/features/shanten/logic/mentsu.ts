@@ -1,5 +1,5 @@
-import type { HaiId, HaiKindId, Tehai13 } from "../../../types";
-import { normalizeHaiIds } from "../../../core/hai";
+import type { Tehai13 } from "../../../types";
+
 import { countHaiKind, validateTehai13 } from "../../../core/tehai";
 
 /**
@@ -8,14 +8,11 @@ import { countHaiKind, validateTehai13 } from "../../../core/tehai";
  * @param tehai 手牌 (13枚)
  * @returns シャンテン数
  */
-export function calculateMentsuShanten<T extends HaiKindId | HaiId>(
-  tehai: Tehai13<T>,
-): number {
+export function calculateMentsuShanten(tehai: Tehai13): number {
   // 防御的プログラミング
   validateTehai13(tehai);
 
-  const normalizedClosed = normalizeHaiIds(tehai.closed);
-  const counts = countHaiKind(normalizedClosed);
+  const counts = countHaiKind(tehai.closed);
   // Mutation is required for the algorithm, so we convert to a mutable number array
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const mutableCounts = [...counts] as number[];

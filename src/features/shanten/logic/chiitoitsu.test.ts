@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { calculateChiitoitsuShanten } from "./chiitoitsu";
-import type { Tehai13, HaiId } from "../../../types";
-import { HaiKind, MentsuType } from "../../../types";
+import { haiIdToKindId } from "../../../core/hai";
 import { createTehai13 } from "../../../utils/test-helpers";
+import { HaiId, HaiKind, MentsuType, Tehai13 } from "../../../types"; // Combined and added Tehai13
 
 describe("calculateChiitoitsuShanten", () => {
   it("通常の1シャンテンの手牌で正しく計算できること", () => {
@@ -117,7 +117,7 @@ describe("calculateChiitoitsuShanten", () => {
     expect(calculateChiitoitsuShanten(createTehai13(hais))).toBe(1);
   });
 
-  it("Tehai<HaiId>（ID >= 34を含む）が正しく正規化されて計算できること", () => {
+  it("Tehai<HaiId>（ID >= 34を含む）は呼び出し元で正規化されていれば正しく計算できること", () => {
     // 筒子 (ID >= 36) を使用して、HaiIdモードが発動することを確認
     const hais = [
       36,
@@ -136,7 +136,9 @@ describe("calculateChiitoitsuShanten", () => {
     ] as HaiId[];
     // 6対子, 7種類
     // シャンテン = 0 (聴牌)
-    expect(calculateChiitoitsuShanten(createTehai13(hais))).toBe(0);
+    expect(
+      calculateChiitoitsuShanten(createTehai13(hais.map(haiIdToKindId))),
+    ).toBe(0);
   });
 
   it("Tehai<HaiId>で同種牌4枚（HaiId 36-39など）が含まれる場合も1対子として正しく計算されること", () => {
@@ -160,6 +162,8 @@ describe("calculateChiitoitsuShanten", () => {
       53, // PinZu5
       56, // PinZu6
     ] as HaiId[];
-    expect(calculateChiitoitsuShanten(createTehai13(hais))).toBe(2);
+    expect(
+      calculateChiitoitsuShanten(createTehai13(hais.map(haiIdToKindId))),
+    ).toBe(2);
   });
 });

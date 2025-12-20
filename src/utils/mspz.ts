@@ -1,15 +1,14 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 import { ShoushaiError, TahaiError } from "../errors";
 import { HaiId, HaiKind, HaiKindDistribution, HaiKindId } from "../types";
-import { haiKindToNumber, normalizeHaiIds } from "../core/hai";
+import { haiIdToKindId, haiKindToNumber } from "../core/hai";
 
 /**
- * 13枚の牌ID配列を 34種の牌カウント配列（整数配列）に変換します。
+ * 13枚の牌種ID配列を 34種の牌種分布（所持数分布）に変換します。
  * @throws {ShoushaiError} 牌の数が13枚より少ない場合
  * @throws {TahaiError} 牌の数が13枚より多い場合
  */
-export function haiIdsToCounts34(
-  hais: readonly (HaiKindId | HaiId)[],
+export function haiKindIdsToDistribution(
+  hais: readonly HaiKindId[],
 ): HaiKindDistribution {
   if (hais.length < 13) {
     throw new ShoushaiError(
@@ -24,9 +23,8 @@ export function haiIdsToCounts34(
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const counts = Array.from({ length: 34 }, () => 0) as unknown as number[];
-  const kinds = normalizeHaiIds(hais);
 
-  for (const kind of kinds) {
+  for (const kind of hais) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     counts[kind]!++;
   }
@@ -36,14 +34,26 @@ export function haiIdsToCounts34(
 }
 
 /**
- * 13枚の牌ID配列を MSPZ形式の文字列（例: "123m456p..."）に変換します。
- * すべての牌をソートして表記します。
- * @throws {Error} 牌の数が13枚でない場合
+ * 13枚の牌ID配列を 34種の牌種分布（所持数分布）に変換します。
+ * @throws {ShoushaiError} 牌の数が13枚より少ない場合
+ * @throws {TahaiError} 牌の数が13枚より多い場合
  */
-export function haiIdsToMspzString(
-  hais: readonly (HaiKindId | HaiId)[],
-): string {
-  const counts = haiIdsToCounts34(hais);
+export function haiIdsToDistribution(
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+  hais: readonly HaiId[],
+): HaiKindDistribution {
+  const kinds = hais.map(haiIdToKindId);
+  return haiKindIdsToDistribution(kinds);
+}
+
+/**
+ * 13枚の牌種ID配列を MSPZ形式の文字列（例: "123m456p..."）に変換します。
+ * すべての牌をソートして表記します。
+ * @throws {ShoushaiError} 牌の数が13枚より少ない場合
+ * @throws {TahaiError} 牌の数が13枚より多い場合
+ */
+export function haiKindIdsToMspzString(hais: readonly HaiKindId[]): string {
+  const counts = haiKindIdsToDistribution(hais);
   let result = "";
 
   // 萬子

@@ -1,5 +1,5 @@
-import type { HaiId, HaiKindId, Tehai13 } from "../../../types";
-import { normalizeHaiIds, isYaochu } from "../../../core/hai";
+import type { HaiKindId, Tehai13 } from "../../../types";
+import { isYaochu } from "../../../core/hai";
 import { countHaiKind, validateTehai13 } from "../../../core/tehai";
 
 /**
@@ -16,9 +16,7 @@ import { countHaiKind, validateTehai13 } from "../../../core/tehai";
  * @param tehai 手牌
  * @returns シャンテン数 (0: 聴牌, -1: 和了(理論上))。副露している場合は Infinity。
  */
-export function calculateKokushiShanten<T extends HaiKindId | HaiId>(
-  tehai: Tehai13<T>,
-): number {
+export function calculateKokushiShanten(tehai: Tehai13): number {
   // 防御的プログラミング (Defensive Programming):
   // 公開API（calculateShanten）側でもバリデーションが行われる想定だが（Facadeパターン）、
   // 内部整合性を保つため、ここでも独立してバリデーションを実施する。
@@ -29,8 +27,7 @@ export function calculateKokushiShanten<T extends HaiKindId | HaiId>(
     return Infinity;
   }
 
-  const normalizedClosed = normalizeHaiIds(tehai.closed);
-  const dist = countHaiKind(normalizedClosed);
+  const dist = countHaiKind(tehai.closed);
 
   // 么九牌の種類数をカウント
   // 同時に、么九牌の対子が存在するかもチェック
