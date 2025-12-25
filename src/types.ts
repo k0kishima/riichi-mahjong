@@ -383,6 +383,13 @@ export type StructuralYaku =
  */
 export type Han = 1 | 2 | 3 | 5 | 6 | 13 | 26;
 
+/** 待ちの形 */
+export type MachiType =
+  | "Tanki" // 単騎待ち
+  | "Ryanmen" // 両面待ち
+  | "Kanchan" // 嵌張待ち
+  | "Penchan"; // 辺張待ち
+
 /**
  * 役の飜数定義
  */
