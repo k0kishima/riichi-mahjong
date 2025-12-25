@@ -377,13 +377,20 @@ export type StructuralYaku =
   | "Suukantsu"; // 四槓子
 
 /**
+ * 役の飜数 (Han)
+ *
+ * 1, 2, 3, 5(流し満貫/清一色喰い下がり), 6(清一色), 13(役満), 26(ダブル役満)
+ */
+export type Han = 1 | 2 | 3 | 5 | 6 | 13 | 26;
+
+/**
  * 役の飜数定義
  */
 export interface YakuHanConfig {
   /** 門前時の飜数 */
-  readonly closed: number;
+  readonly closed: Han;
   /** 鳴きあり時の飜数 (0なら不成立) */
-  readonly open: number;
+  readonly open: Han | 0;
 }
 
 /**
@@ -399,4 +406,4 @@ export type YakuName = StructuralYaku;
  * 成立した役と、その飜数のペアのリスト。
  * 役が一つも成立しない場合は空配列となる。
  */
-export type YakuResult = readonly [YakuName, number][];
+export type YakuResult = readonly [YakuName, Han][];
