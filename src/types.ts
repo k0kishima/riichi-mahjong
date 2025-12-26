@@ -402,7 +402,8 @@ export type MachiType =
   | "Kanchan" // 嵌張待ち
   | "Penchan"; // 辺張待ち
 
-export interface HouraStructure {
+export interface MentsuHouraStructure {
+  readonly type: "Mentsu";
   readonly fourMentsu: readonly [
     CompletedMentsu,
     CompletedMentsu,
@@ -411,6 +412,32 @@ export interface HouraStructure {
   ];
   readonly jantou: Toitsu;
 }
+
+export interface ChiitoitsuHouraStructure {
+  readonly type: "Chiitoitsu";
+  readonly pairs: readonly [
+    Toitsu,
+    Toitsu,
+    Toitsu,
+    Toitsu,
+    Toitsu,
+    Toitsu,
+    Toitsu,
+  ];
+}
+
+export interface KokushiHouraStructure {
+  readonly type: "Kokushi";
+  /** 13種類の么九牌（重複なし） */
+  readonly yaochu: readonly HaiKindId[];
+  /** 雀頭となる牌の種類 */
+  readonly jantou: HaiKindId;
+}
+
+export type HouraStructure =
+  | MentsuHouraStructure
+  | ChiitoitsuHouraStructure
+  | KokushiHouraStructure;
 
 /**
  * 役の飜数定義

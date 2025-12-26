@@ -1,13 +1,7 @@
-import type {
-  Tehai14,
-  HaiKindId,
-  Shuntsu,
-  Koutsu,
-  CompletedMentsu,
-} from "../../../types";
-import { countHaiKind } from "../../../core/tehai";
-import { isTuple4 } from "../../../utils/assertions";
-import type { HouraStructure } from "../types";
+import type { CompletedMentsu, MentsuHouraStructure } from "../../../../types";
+import { countHaiKind } from "../../../../core/tehai";
+import { isTuple4 } from "../../../../utils/assertions";
+import type { Tehai14, HaiKindId, Shuntsu, Koutsu } from "../../../../types";
 
 /**
  * 手牌を標準形（4面子1雀頭）に構造化する。
@@ -30,10 +24,12 @@ import type { HouraStructure } from "../types";
  * @param tehai 和了形の手牌
  * @returns 可能な構造化パターンのリスト。構造化できない場合は空配列。
  */
-export function decomposeTehaiToMentsu(tehai: Tehai14): HouraStructure[] {
+export function decomposeTehaiForMentsu(
+  tehai: Tehai14,
+): MentsuHouraStructure[] {
   // HaiKindDistributionはreadonlyなので、可変配列に複製する
   const counts = [...countHaiKind(tehai.closed)];
-  const results: HouraStructure[] = [];
+  const results: MentsuHouraStructure[] = [];
 
   // 1. 雀頭候補を探す
   for (let i = 0; i < 34; i++) {
@@ -56,6 +52,7 @@ export function decomposeTehaiToMentsu(tehai: Tehai14): HouraStructure[] {
         // 4面子であることを確認（ロジック上は保証されているはずだが、念のため）
         if (isTuple4(fullMentsuList)) {
           results.push({
+            type: "Mentsu",
             fourMentsu: fullMentsuList,
             jantou: { type: "Toitsu", hais: [kind, kind] },
           });
@@ -84,8 +81,6 @@ function decomposeClosedMentsu(
     const remaining = counts.reduce((acc, c) => acc + c, 0);
     return remaining === 0 ? [[]] : [];
   }
-
-  // ... rest of logic remains same but implicitly returns CompletedMentsu ...
 
   // 面子の重複順列を防ぎ決定論的な順序を強制するため、カウントが0より大きい最初の牌を見つける
   let firstIndex = -1;

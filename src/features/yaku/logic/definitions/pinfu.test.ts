@@ -1,15 +1,16 @@
 import { describe, it, expect } from "vitest";
 import { pinfuDefinition } from "./pinfu";
-import { createShuntsu, createToitsu } from "../../../utils/test-helpers";
-import { HaiKind } from "../../../types";
-import type { HouraContext, HouraStructure } from "../types";
-import { MahjongArgumentError } from "../../../errors";
+import { createShuntsu, createToitsu } from "../../../../utils/test-helpers";
+import { HaiKind } from "../../../../types";
+import type { HouraContext, HouraStructure } from "../../types";
+import { MahjongArgumentError } from "../../../../errors";
 
 function makeHand(
   mentsuStrs: [string, string, string, string],
   jantouStr: string,
 ): HouraStructure {
   return {
+    type: "Mentsu",
     fourMentsu: [
       createShuntsu(mentsuStrs[0]),
       createShuntsu(mentsuStrs[1]),

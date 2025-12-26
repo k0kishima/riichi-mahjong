@@ -10,6 +10,8 @@ export function classifyMachi(
   hand: HouraStructure,
   agariHai: HaiKindId,
 ): MachiType | undefined {
+  if (hand.type !== "Mentsu") return undefined;
+
   // 1. 雀頭での和了（単騎待ち）
   if (hand.jantou.hais.includes(agariHai)) {
     return "Tanki";

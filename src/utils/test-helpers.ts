@@ -160,6 +160,7 @@ export function createMockHand(
   // Fill rest with dummy
   const dummyShuntsu = createShuntsu("123s");
   return {
+    type: "Mentsu",
     fourMentsu: [targetMentsu, dummyShuntsu, dummyShuntsu, dummyShuntsu],
     jantou,
   };

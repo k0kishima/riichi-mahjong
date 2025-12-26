@@ -1,4 +1,4 @@
-import { HaiKind, type HaiKindId } from "../../../types";
+import { HaiKind, type HaiKindId } from "../../../../types";
 
 import type {
   HouraStructure,
@@ -6,11 +6,11 @@ import type {
   HouraContext,
   YakuDefinition,
   YakuHanConfig,
-} from "../types";
-import type { Shuntsu } from "../../../types";
-import { classifyMachi } from "../../../core/machi";
-import { MahjongArgumentError } from "../../../errors";
-import { createYakuDefinition } from "../factory";
+} from "../../types";
+import type { Shuntsu } from "../../../../types";
+import { classifyMachi } from "../../../../core/machi";
+import { MahjongArgumentError } from "../../../../errors";
+import { createYakuDefinition } from "../../factory";
 
 const PINFU_YAKU: Yaku = {
   name: "Pinfu",
@@ -26,6 +26,7 @@ const checkPinfu: (hand: HouraStructure, context: HouraContext) => boolean = (
 ) => {
   // 1. 門前であること
   if (!context.isMenzen) return false;
+  if (hand.type !== "Mentsu") return false;
 
   // 2. 雀頭が役牌でないこと
   // 三元牌、場風、自風が含まれていないことを確認
